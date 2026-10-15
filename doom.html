@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>DOOM | MemeZone</title>
+<style>
+  :root { --primary: #ff5722; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 0;
+    background: linear-gradient(180deg, #2b0b0b 0%, #0a0202 100%);
+    color: #eee;
+    min-height: 100vh;
+  }
+  header {
+    background: #1a0505;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid #ff5722;
+    box-shadow: 0 2px 16px rgba(255,87,34,0.35);
+  }
+  header .logo { color: #ff5722; font-weight: bold; letter-spacing: 2px; }
+  nav a {
+    margin-left: 1.5rem;
+    text-decoration: none;
+    color: #eee;
+    font-weight: bold;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: #ff5722; }
+
+  .container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  h1 {
+    text-align: center;
+    color: #ff5722;
+    text-shadow: 0 0 24px rgba(255,87,34,0.7);
+    letter-spacing: 6px;
+    margin-bottom: 1.5rem;
+  }
+  .game-frame {
+    position: relative;
+    background: #000;
+    border: 4px solid #333;
+    border-radius: 6px;
+    box-shadow: 0 0 60px rgba(255,87,34,0.4);
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+    cursor: crosshair;
+  }
+
+  .crosshair {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 22px; height: 22px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 5;
+  }
+  .crosshair::before, .crosshair::after {
+    content: ""; position: absolute;
+    background: #ff5722;
+    box-shadow: 0 0 8px rgba(255,87,34,1);
+  }
+  .crosshair::before { top: 50%; left: 0; width: 100%; height: 2px; transform: translateY(-50%); }
+  .crosshair::after  { left: 50%; top: 0; height: 100%; width: 2px; transform: translateX(-50%); }
+
+  .hud {
+    background: #2a0808;
+    border-top: 2px solid #ff5722;
+    padding: 0.7rem 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: "Courier New", monospace;
+    font-weight: bold;
+    color: #ff5722;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .hud .stat { display: flex; gap: 0.4rem; align-items: center; }
+  .hud .stat b { color: #fff; }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    text-align: center;
+    padding: 2rem;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 {
+    color: #ff5722;
+    font-size: 2.2rem;
+    margin: 0 0 0.8rem;
+    letter-spacing: 6px;
+    text-shadow: 0 0 24px rgba(255,87,34,0.9);
+  }
+  .overlay p { color: #ccc; max-width: 460px; margin: 0.3rem 0; line-height: 1.5; }
+  .overlay button {
+    margin-top: 1.5rem;
+    background: #ff5722;
+    color: #fff;
+    border: none;
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    letter-spacing: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0 0 24px rgba(255,87,34,0.7);
+    transition: background 0.2s, transform 0.1s;
+  }
+  .overlay button:hover { background: #e64511; }
+  .overlay button:active { transform: scale(0.97); }
+
+  .hint {
+    text-align: center;
+    color: #aaa;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    line-height: 1.7;
+  }
+  .hint kbd {
+    background: #333;
+    color: #ff5722;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    margin: 0 1px;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">MemeZone</div>
+    <nav>
+      <a href="index.html">Главная</a>
+      <a href="about.html">О нас</a>
+      <a href="write.html">Написать нам</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1>🔥 DOOM</h1>
+
+    <div class="game-frame">
+      <canvas id="game" width="640" height="400"></canvas>
+      <div class="crosshair"></div>
+      <div class="hud">
+        <div class="stat">❤️ <b id="hp">100</b></div>
+        <div class="stat">🔫 <b id="ammo">50</b></div>
+        <div class="stat">💀 <b id="score">0</b></div>
+        <div class="stat">👹 <b id="left">8</b></div>
+      </div>
+      <div class="overlay" id="overlay">
+        <h2 id="ov-title">DOOM</h2>
+        <p id="ov-text">Убей всех демонов. Не дай им убить тебя.</p>
+        <button id="startBtn">НАЧАТЬ</button>
+      </div>
+    </div>
+
+    <p class="hint">
+      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> — движение ·
+      <kbd>Мышь</kbd> — обзор ·
+      <kbd>ЛКМ</kbd> / <kbd>Space</kbd> — выстрел ·
+      <kbd>Esc</kbd> — пауза
+    </p>
+  </div>
+
+<script>
+(function () {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  const hpEl    = document.getElementById('hp');
+  const ammoEl  = document.getElementById('ammo');
+  const scoreEl = document.getElementById('score');
+  const leftEl  = document.getElementById('left');
+  const overlay = document.getElementById('overlay');
+  const ovTitle = document.getElementById('ov-title');
+  const ovText  = document.getElementById('ov-text');
+  const startBtn= document.getElementById('startBtn');
+
+  // === КАРТА ===
+  const MAP = [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,2,2,2,0,0,0,0,0,2,2,2,0,0,1],
+    [1,0,2,0,0,0,0,0,0,0,0,0,2,0,0,1],
+    [1,0,2,0,1,1,1,0,0,1,1,1,2,0,0,1],
+    [1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,1],
+    [1,0,0,0,1,0,2,2,2,2,0,1,0,0,0,1],
+    [1,0,0,0,0,0,2,0,0,2,0,0,0,0,0,1],
+    [1,0,0,0,0,0,2,0,0,2,0,0,0,0,0,1],
+    [1,0,0,0,1,0,2,2,0,2,0,1,0,0,0,1],
+    [1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,1],
+    [1,0,2,0,1,1,1,0,0,1,1,1,2,0,0,1],
+    [1,0,2,0,0,0,0,0,0,0,0,0,2,0,0,1],
+    [1,0,2,2,2,0,0,0,0,0,2,2,2,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+  ];
+  const MAP_W = MAP[0].length, MAP_H = MAP.length;
+
+  function isWall(x, y) {
+    const mx = Math.floor(x), my = Math.floor(y);
+    if (mx < 0 || my < 0 || mx >= MAP_W || my >= MAP_H) return true;
+    return MAP[my][mx] > 0;
+  }
+
+  function hasLineOfSight(x1, y1, x2, y2) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const dist = Math.hypot(dx, dy);
+    const steps = Math.ceil(dist * 5);
+    for (let i = 1; i < steps; i++) {
+      const t = i / steps;
+      if (isWall(x1 + dx * t, y1 + dy * t)) return false;
+    }
+    return true;
+  }
+
+  // === СОСТОЯНИЕ ===
+  const state = {
+    player: null, enemies: [],
+    ammo: 50, score: 0,
+    playing: false, paused: false,
+    dead: false, won: false,
+    flash: 0, damageFlash: 0,
+    lastTime: 0
+  };
+
+  const zBuffer = new Float32Array(W);
+
+  function reset() {
+    state.player = {
+      x: 8.5, y: 12.5,
+      dirX: 0, dirY: -1,
+      planeX: 0.66, planeY: 0,
+      hp: 100
+    };
+
+    const positions = [
+      [2.5, 1.5], [13.5, 1.5], [2.5, 14.5], [13.5, 14.5],
+      [3.5, 7.5], [12.5, 7.5], [7.5, 7.5], [8.5, 8.5]
+    ];
+    state.enemies = positions.map(([x, y]) => ({
+      x, y, hp: 50, maxHp: 50,
+      attackCooldown: 0, hitTimer: 0, active: true
+    }));
+
+    state.ammo = 50;
+    state.score = 0;
+    state.dead = false;
+    state.won = false;
+    state.flash = 0;
+    state.damageFlash = 0;
+    updateHUD();
+  }
+
+  function updateHUD() {
+    hpEl.textContent = Math.max(0, state.player ? state.player.hp : 100);
+    ammoEl.textContent = state.ammo;
+    scoreEl.textContent = state.score;
+    const alive = state.enemies.filter(e => e.hp > 0).length;
+    leftEl.textContent = alive;
+  }
+
+  // === УПРАВЛЕНИЕ ===
+  const keys = {};
+
+  document.addEventListener('keydown', (e) => {
+    keys[e.key.toLowerCase()] = true;
+    if (e.key === ' ') {
+      e.preventDefault();
+      if (state.playing && !state.paused) shoot();
+    }
+    if (e.key === 'Escape' && state.playing && !state.dead && !state.won) {
+      // pointerlock сам вызовет pointerlockchange
+    }
+  });
+  document.addEventListener('keyup', (e) => {
+    keys[e.key.toLowerCase()] = false;
+  });
+
+  canvas.addEventListener('click', () => {
+    if (!state.playing || state.dead || state.won) return;
+    if (document.pointerLockElement !== canvas) {
+      canvas.requestPointerLock();
+    } else if (!state.paused) {
+      shoot();
+    }
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (document.pointerLockElement === canvas && state.playing && !state.paused && !state.dead && !state.won) {
+      rotate(e.movementX * 0.0022);
+    }
+  });
+
+  document.addEventListener('pointerlockchange', () => {
+    if (!state.playing || state.dead || state.won) return;
+    if (document.pointerLockElement !== canvas) {
+      if (!state.paused) pauseGame();
+    } else {
+      state.paused = false;
+      hideOverlay();
+    }
+  });
+
+  function rotate(a) {
+    const c = Math.cos(a), s = Math.sin(a);
+    const p = state.player;
+    const dx = p.dirX, dy = p.dirY;
+    p.dirX = dx * c - dy * s;
+    p.dirY = dx * s + dy * c;
+    const px = p.planeX, py = p.planeY;
+    p.planeX = px * c - py * s;
+    p.planeY = px * s + py * c;
+  }
+
+  function shoot() {
+    if (state.ammo <= 0) return;
+    state.ammo--;
+    state.flash = 0.08;
+    updateHUD();
+
+    const p = state.player;
+    const range = 14;
+    let best = null, bestDist = Infinity;
+
+    for (const e of state.enemies) {
+      if (e.hp <= 0) continue;
+      const dx = e.x - p.x, dy = e.y - p.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > range) continue;
+
+      const dot = (dx * p.dirX + dy * p.dirY) / dist;
+      const angle = Math.acos(Math.max(-1, Math.min(1, dot)));
+      // Широкий радиус — как дробовик DOOM
+      if (angle < 0.4 && dist < bestDist && hasLineOfSight(p.x, p.y, e.x, e.y)) {
+        bestDist = dist;
+        best = e;
+      }
+    }
+
+    if (best) {
+      best.hp -= 30;
+      best.hitTimer = 0.15;
+      if (best.hp <= 0) {
+        state.score += 100;
+        updateHUD();
+        if (state.enemies.every(e => e.hp <= 0)) winGame();
+      }
+    }
+  }
+
+  // === ИГРОВОЙ ЦИКЛ ===
+  function gameLoop(now) {
+    if (!state.playing) return;
+
+    const dt = Math.min(0.05, (now - state.lastTime) / 1000);
+    state.lastTime = now;
+
+    if (!state.paused && !state.dead && !state.won) {
+      update(dt);
+      render();
+    }
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  function update(dt) {
+    const p = state.player;
+    const speed = 2.8 * dt;
+    const rotSpeed = 2.0 * dt;
+
+    // Поворот клавишами
+    if (keys['arrowleft'])  rotate(-rotSpeed);
+    if (keys['arrowright']) rotate(rotSpeed);
+
+    // Движение
+    let mx = 0, my = 0;
+    if (keys['w'] || keys['arrowup'])   { mx += p.dirX;  my += p.dirY; }
+    if (keys['s'] || keys['arrowdown']) { mx -= p.dirX;  my -= p.dirY; }
+    if (keys['a']) { mx += p.dirY;  my -= p.dirX; }  // strafe left
+    if (keys['d']) { mx -= p.dirY;  my += p.dirX; }  // strafe right
+
+    const len = Math.hypot(mx, my);
+    if (len > 0) {
+      mx /= len; my /= len;
+      const nx = p.x + mx * speed;
+      const ny = p.y + my * speed;
+      if (!isWall(nx, p.y)) p.x = nx;
+      if (!isWall(p.x, ny)) p.y = ny;
+    }
+
+    // Враги
+    for (const e of state.enemies) {
+      if (e.hp <= 0) continue;
+      if (e.attackCooldown > 0) e.attackCooldown -= dt;
+      if (e.hitTimer > 0) e.hitTimer -= dt;
+
+      const dx = p.x - e.x, dy = p.y - e.y;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist < 14 && hasLineOfSight(e.x, e.y, p.x, p.y)) {
+        const nx = dx / dist, ny = dy / dist;
+        if (dist > 0.9) {
+          const eSpeed = 1.4 * dt;
+          const newX = e.x + nx * eSpeed;
+          const newY = e.y + ny * eSpeed;
+          if (!isWall(newX, e.y)) e.x = newX;
+          if (!isWall(e.x, newY)) e.y = newY;
+        } else if (e.attackCooldown <= 0) {
+          p.hp -= 8;
+          e.attackCooldown = 1.1;
+          state.damageFlash = 0.25;
+          updateHUD();
+          if (p.hp <= 0) { p.hp = 0; updateHUD(); loseGame(); return; }
+        }
+      }
+    }
+
+    if (state.flash > 0) state.flash -= dt;
+    if (state.damageFlash > 0) state.damageFlash -= dt;
+  }
+
+  // === РЕНДЕР ===
+  function render() {
+    const p = state.player;
+
+    // Потолок и пол — градиент
+    const ceilGrad = ctx.createLinearGradient(0, 0, 0, H / 2);
+    ceilGrad.addColorStop(0, '#1a0404');
+    ceilGrad.addColorStop(1, '#4a1010');
+    ctx.fillStyle = ceilGrad;
+    ctx.fillRect(0, 0, W, H / 2);
+
+    const floorGrad = ctx.createLinearGradient(0, H / 2, 0, H);
+    floorGrad.addColorStop(0, '#3a1e10');
+    floorGrad.addColorStop(1, '#150805');
+    ctx.fillStyle = floorGrad;
+    ctx.fillRect(0, H / 2, W, H / 2);
+
+    // Raycasting
+    for (let x = 0; x < W; x++) {
+      const cameraX = 2 * x / W - 1;
+      const rayDirX = p.dirX + p.planeX * cameraX;
+      const rayDirY = p.dirY + p.planeY * cameraX;
+
+      let mapX = Math.floor(p.x), mapY = Math.floor(p.y);
+      const deltaDistX = Math.abs(1 / rayDirX);
+      const deltaDistY = Math.abs(1 / rayDirY);
+
+      let stepX, stepY, sideDistX, sideDistY;
+      if (rayDirX < 0) { stepX = -1; sideDistX = (p.x - mapX) * deltaDistX; }
+      else             { stepX =  1; sideDistX = (mapX + 1 - p.x) * deltaDistX; }
+      if (rayDirY < 0) { stepY = -1; sideDistY = (p.y - mapY) * deltaDistY; }
+      else             { stepY =  1; sideDistY = (mapY + 1 - p.y) * deltaDistY; }
+
+      let hit = 0, side = 0, wallType = 1;
+      let safety = 64;
+      while (!hit && safety-- > 0) {
+        if (sideDistX < sideDistY) { sideDistX += deltaDistX; mapX += stepX; side = 0; }
+        else                       { sideDistY += deltaDistY; mapY += stepY; side = 1; }
+        if (mapX < 0 || mapY < 0 || mapX >= MAP_W || mapY >= MAP_H) { hit = 1; break; }
+        if (MAP[mapY][mapX] > 0) { hit = 1; wallType = MAP[mapY][mapX]; }
+      }
+
+      const perpDist = side === 0
+        ? (sideDistX - deltaDistX)
+        : (sideDistY - deltaDistY);
+
+      zBuffer[x] = perpDist;
+      if (perpDist <= 0.01) continue;
+
+      const lineHeight = H / perpDist;
+      const drawStart = Math.max(0, H / 2 - lineHeight / 2);
+      const drawEnd   = Math.min(H, H / 2 + lineHeight / 2);
+
+      // Базовый цвет по типу стены
+      let r, g, b;
+      if (wallType === 1)      { r = 170; g = 55;  b = 35; }   // красный кирпич
+      else if (wallType === 2) { r = 80;  g = 80;  b = 110; }  // сине-серый камень
+      else                     { r = 120; g = 100; b = 80; }
+
+      if (side === 1) { r *= 0.7; g *= 0.7; b *= 0.7; }
+
+      // Затемнение по расстоянию
+      const shade = Math.max(0.15, 1 - perpDist / 13);
+      r *= shade; g *= shade; b *= shade;
+
+      ctx.fillStyle = `rgb(${r|0},${g|0},${b|0})`;
+      ctx.fillRect(x, drawStart, 1, drawEnd - drawStart);
+    }
+
+    // Спрайты врагов
+    const visible = state.enemies
+      .filter(e => e.hp > 0)
+      .map(e => ({ e, dist: (p.x - e.x) ** 2 + (p.y - e.y) ** 2 }))
+      .sort((a, b) => b.dist - a.dist);
+
+    for (const { e } of visible) {
+      const spriteX = e.x - p.x;
+      const spriteY = e.y - p.y;
+
+      const invDet = 1 / (p.planeX * p.dirY - p.dirX * p.planeY);
+      const transformX = invDet * (p.dirY * spriteX - p.dirX * spriteY);
+      const transformY = invDet * (-p.planeY * spriteX + p.planeX * spriteY);
+
+      if (transformY <= 0.1) continue;
+
+      const screenX = Math.floor((W / 2) * (1 + transformX / transformY));
+      if (screenX < 0 || screenX >= W) continue;
+      if (transformY >= zBuffer[screenX]) continue;
+
+      const size = Math.min(500, Math.abs(H / transformY));
+      const y = H / 2;
+
+      // Тень от врага
+      const shade = Math.max(0.4, 1 - transformY / 14);
+
+      ctx.save();
+      ctx.globalAlpha = shade;
+      ctx.font = `${size}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Красная вспышка при попадании
+      if (e.hitTimer > 0) {
+        ctx.globalAlpha = 1;
+        ctx.shadowColor = '#ff0000';
+        ctx.shadowBlur = 30;
+      } else {
+        ctx.shadowColor = '#ff2200';
+        ctx.shadowBlur = 15;
+      }
+
+      ctx.fillText('👹', screenX, y);
+      ctx.restore();
+    }
+
+    // Мини-карта
+    drawMinimap();
+
+    // Вспышка выстрела
+    if (state.flash > 0) {
+      ctx.fillStyle = `rgba(255, 220, 150, ${state.flash * 4})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // Красная вспышка урона
+    if (state.damageFlash > 0) {
+      ctx.fillStyle = `rgba(200, 0, 0, ${state.damageFlash * 1.5})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+  }
+
+  function drawMinimap() {
+    const scale = 5;
+    const pad = 10;
+    ctx.save();
+    ctx.globalAlpha = 0.75;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(pad - 2, pad - 2, MAP_W * scale + 4, MAP_H * scale + 4);
+
+    for (let y = 0; y < MAP_H; y++) {
+      for (let x = 0; x < MAP_W; x++) {
+        if (MAP[y][x] === 1)      ctx.fillStyle = '#8a3020';
+        else if (MAP[y][x] === 2) ctx.fillStyle = '#40405a';
+        else continue;
+        ctx.fillRect(pad + x * scale, pad + y * scale, scale, scale);
+      }
+    }
+
+    // Игрок
+    ctx.fillStyle = '#ff5722';
+    ctx.fillRect(pad + state.player.x * scale - 2, pad + state.player.y * scale - 2, 4, 4);
+
+    // Направление
+    ctx.strokeStyle = '#ff5722';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(pad + state.player.x * scale, pad + state.player.y * scale);
+    ctx.lineTo(
+      pad + (state.player.x + state.player.dirX * 1.5) * scale,
+      pad + (state.player.y + state.player.dirY * 1.5) * scale
+    );
+    ctx.stroke();
+
+    // Враги
+    for (const e of state.enemies) {
+      if (e.hp <= 0) continue;
+      ctx.fillStyle = '#ff1744';
+      ctx.fillRect(pad + e.x * scale - 1.5, pad + e.y * scale - 1.5, 3, 3);
+    }
+
+    ctx.restore();
+  }
+
+  // === УПРАВЛЕНИЕ ИГРОЙ ===
+  function showOverlay(title, text, btnText, onClick) {
+    ovTitle.textContent = title;
+    ovText.textContent = text;
+    startBtn.textContent = btnText;
+    overlay.classList.remove('hidden');
+    startBtn.onclick = onClick;
+  }
+
+  function hideOverlay() {
+    overlay.classList.add('hidden');
+  }
+
+  function startGame() {
+    reset();
+    state.playing = true;
+    state.paused = false;
+    hideOverlay();
+    state.lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
+    canvas.requestPointerLock();
+  }
+
+  function pauseGame() {
+    if (state.dead || state.won) return;
+    state.paused = true;
+    showOverlay('ПАУЗА', 'Игра на паузе. Кликни, чтобы вернуться в ад.', 'ПРОДОЛЖИТЬ', () => {
+      hideOverlay();
+      canvas.requestPointerLock();
+    });
+  }
+
+  function loseGame() {
+    state.dead = true;
+    document.exitPointerLock();
+    setTimeout(() => {
+      showOverlay('ТЫ ПОГИБ', `Счёт: ${state.score}. Демоны победили... в этот раз.`, 'ЗАНОВО', startGame);
+    }, 400);
+  }
+
+  function winGame() {
+    state.won = true;
+    document.exitPointerLock();
+    setTimeout(() => {
+      showOverlay('ПОБЕДА', `Все демоны повержены! Счёт: ${state.score}.`, 'ЕЩЁ РАЗ', startGame);
+    }, 400);
+  }
+
+  startBtn.onclick = startGame;
+})();
+</script>
+</body>
+</html>

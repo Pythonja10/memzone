@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>О нас | MemeZone</title>
+  <style>
+    :root {
+      /* ФИОЛЕТОВАЯ палитра — родные цвета about */
+      --primary:        #7e57c2;
+      --primary-dark:   #5e35b1;
+      --primary-darker: #4527a0;
+      --primary-soft:   #ede7f6;
+      --primary-softer: #f5f0fa;
+      --primary-border: #7e57c2;
+      --primary-glow:   rgba(126, 87, 194, 0.25);
+      --dark: #222;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(180deg, var(--primary-soft) 0%, var(--primary-softer) 100%);
+      background-attachment: fixed;
+      color: var(--dark);
+      min-height: 100vh;
+    }
+    header {
+      background: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border-bottom: 3px solid var(--primary-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header .logo {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--primary-darker);
+      letter-spacing: 1px;
+    }
+    nav a {
+      margin-left: 1.5rem;
+      text-decoration: none;
+      color: var(--dark);
+      font-weight: bold;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--primary-dark); }
+
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    h1 {
+      text-align: center;
+      color: var(--primary-darker);
+      margin-bottom: 2rem;
+    }
+
+    section {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px var(--primary-glow);
+      margin-bottom: 2rem;
+      border: 1px solid rgba(0,0,0,0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    section:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px var(--primary-glow);
+    }
+    section h2 {
+      margin-top: 0;
+      color: var(--primary-dark);
+    }
+    section p {
+      line-height: 1.6;
+      color: #333;
+      margin: 0 0 1.2rem;
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      border: none;
+      padding: 0.7rem 1.4rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      box-shadow: 0 3px 10px var(--primary-glow);
+    }
+    button:hover {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-darker) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px var(--primary-glow);
+    }
+    button:active { transform: translateY(0); }
+
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">MemeZone</div>
+    <nav>
+      <a href="index.html">Главная</a>
+      <a href="about.html">О нас</a>
+      <a href="write.html">Написать нам</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1>О нас</h1>
+
+    <section>
+      <h2>Кто мы такие?</h2>
+      <p>Мы — команда любителей мемов. Наша цель — собирать самые смешные и жизненные картинки и показывать их вам каждый день.</p>
+      <button onclick="alert('Спасибо за доверие!')">Поддержите нас</button>
+    </section>
+
+    <section>
+      <h2>Наша миссия</h2>
+      <p>Сделать мир чуточку веселее. Если у тебя есть крутой мем — скинь его нам на странице «Написать нам».</p>
+      <button onclick="location.href='write.html'">Написать нам</button>
+    </section>
+  </div>
+
+  <footer>© 2026 MemeZone — мемы, которые спасают день 🌿</footer>
+</body>
+</html>

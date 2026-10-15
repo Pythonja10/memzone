@@ -1,0 +1,5 @@
+{
+  "kapibary": { "name": "Капибары", "emoji": "🐹" },
+  "physics":  { "name": "Физика",   "emoji": "⚡" },
+  "math":     { "name": "Математика", "emoji": "🧮" }
+}

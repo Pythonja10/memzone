@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Написать нам | MemeZone</title>
+  <style>
+    :root {
+      /* ОРАНЖЕВАЯ палитра — родные цвета write */
+      --primary:        #ff5722;
+      --primary-dark:   #e64511;
+      --primary-darker: #bf360c;
+      --primary-soft:   #fff3e0;
+      --primary-softer: #fffaf5;
+      --primary-border: #ff5722;
+      --primary-glow:   rgba(255, 87, 34, 0.25);
+      --dark: #222;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(180deg, var(--primary-soft) 0%, var(--primary-softer) 100%);
+      background-attachment: fixed;
+      color: var(--dark);
+      min-height: 100vh;
+    }
+    header {
+      background: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border-bottom: 3px solid var(--primary-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header .logo {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--primary-darker);
+      letter-spacing: 1px;
+    }
+    nav a {
+      margin-left: 1.5rem;
+      text-decoration: none;
+      color: var(--dark);
+      font-weight: bold;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--primary-dark); }
+
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    .page-title {
+      text-align: center;
+      color: var(--primary-darker);
+      margin-bottom: 0.4rem;
+    }
+    .page-subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    .forms-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 760px) {
+      .forms-grid { grid-template-columns: 1fr; }
+    }
+
+    .form-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px var(--primary-glow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(0,0,0,0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .form-card:hover {
+      box-shadow: 0 6px 18px var(--primary-glow);
+    }
+
+    .form-card-header {
+      padding: 1rem 1.4rem;
+      font-weight: bold;
+      font-size: 1.05rem;
+      color: #fff;
+    }
+    .form-card.meme .form-card-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    }
+    .form-card.feedback .form-card-header {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-darker) 100%);
+    }
+
+    .form-card form {
+      padding: 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      flex: 1;
+    }
+
+    /* Обёртка для полей — нужна для плашечки */
+    .field-wrap {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .form-card label {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #444;
+    }
+    .form-card input,
+    .form-card textarea,
+    .form-card select {
+      width: 100%;
+      padding: 0.7rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-card input:focus,
+    .form-card textarea:focus,
+    .form-card select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .form-card textarea { resize: vertical; min-height: 90px; }
+
+    /* Красная плашечка рядом с полем */
+    .field-hint {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%) scale(0.85);
+      background: #ffebee;
+      color: #c62828;
+      border: 1px solid #ef9a9a;
+      font-size: 0.72rem;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 12px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      white-space: nowrap;
+    }
+    .field-hint.visible {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+    .field-wrap:has(textarea) .field-hint {
+      top: 8px;
+      transform: scale(0.85);
+    }
+    .field-wrap:has(textarea) .field-hint.visible {
+      transform: scale(1);
+    }
+
+    .form-card button[type="submit"] {
+      margin-top: 0.3rem;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #fff;
+      border: none;
+      padding: 0.8rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      transition: all 0.2s ease;
+      box-shadow: 0 3px 10px var(--primary-glow);
+    }
+    .form-card button[type="submit"]:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-darker) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px var(--primary-glow);
+    }
+    .form-card button[type="submit"]:disabled {
+      opacity: 0.7;
+      cursor: wait;
+    }
+
+    .form-success {
+      text-align: center;
+      color: var(--primary-darker);
+      font-weight: bold;
+      padding: 2rem 1rem;
+      font-size: 1.05rem;
+    }
+
+    .note {
+      text-align: center;
+      color: #666;
+      font-size: 0.85rem;
+      margin-top: 1.5rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">MemeZone</div>
+    <nav>
+      <a href="index.html">Главная</a>
+      <a href="about.html">О нас</a>
+      <a href="write.html">Написать нам</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1 class="page-title">✉️ Написать нам</h1>
+    <p class="page-subtitle">
+      Есть мем — поделись. Есть мысль — расскажи. Мы читаем всё.
+    </p>
+
+    <div class="forms-grid">
+      <!-- ФОРМА 1: Предложить мем -->
+      <div class="form-card meme">
+        <div class="form-card-header">🎉 Предложить мем</div>
+        <form id="meme-form" novalidate>
+          <div class="field-wrap">
+            <label for="meme-name">Ваше имя</label>
+            <input id="meme-name" type="text" name="Имя" placeholder="Как к вам обращаться?" required>
+          </div>
+
+          <div class="field-wrap">
+            <label for="meme-email">Email</label>
+            <input id="meme-email" type="email" name="Email" placeholder="example@mail.com" required>
+          </div>
+
+          <div class="field-wrap">
+            <label for="meme-link">Ссылка на мем</label>
+            <input id="meme-link" type="url" name="Ссылка" placeholder="https://..." required>
+          </div>
+
+          <div class="field-wrap">
+            <label for="meme-comment">Комментарий (необязательно)</label>
+            <textarea id="meme-comment" name="Комментарий" rows="3" placeholder="Почему это стоит опубликовать?"></textarea>
+          </div>
+
+          <button type="submit">Отправить мем</button>
+        </form>
+      </div>
+
+      <!-- ФОРМА 2: Обращения и пожелания -->
+      <div class="form-card feedback">
+        <div class="form-card-header">📬 Обращения и пожелания</div>
+        <form id="feedback-form" novalidate>
+          <div class="field-wrap">
+            <label for="fb-name">Ваше имя</label>
+            <input id="fb-name" type="text" name="Имя" placeholder="Как к вам обращаться?" required>
+          </div>
+
+          <div class="field-wrap">
+            <label for="fb-email">Email</label>
+            <input id="fb-email" type="email" name="Email" placeholder="example@mail.com" required>
+          </div>
+
+          <div class="field-wrap">
+            <label for="fb-type">Тип обращения</label>
+            <select id="fb-type" name="Тип обращения" required>
+              <option value="">— выберите —</option>
+              <option value="Предложение">Предложение</option>
+              <option value="Обращение">Обращение</option>
+              <option value="Пожелание">Пожелание</option>
+              <option value="Угроза">Угроза 😱</option>
+              <option value="Признание">Признание ❤️</option>
+            </select>
+          </div>
+
+          <div class="field-wrap">
+            <label for="fb-message">Сообщение</label>
+            <textarea id="fb-message" name="Сообщение" rows="4" placeholder="Пишите всё, что на душе..." required></textarea>
+          </div>
+
+          <button type="submit">Отправить обращение</button>
+        </form>
+      </div>
+    </div>
+
+    <p class="note">
+      Все обращения уходят на нашу почту. Ответ придёт на указанный Email.
+    </p>
+  </div>
+
+  <footer>© 2026 MemeZone — мемы, которые спасают день 🌿</footer>
+
+  <script src="forms.js" defer></script>
+</body>
+</html>

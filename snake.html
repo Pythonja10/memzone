@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Змейка | MemeZone</title>
+  <style>
+    :root { --primary: #ff5722; --dark: #222; --light: #f9f9f9; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: var(--light);
+      color: var(--dark);
+    }
+    header {
+      background: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    nav a {
+      margin-left: 1.5rem;
+      text-decoration: none;
+      color: var(--dark);
+      font-weight: bold;
+    }
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    h1 { text-align: center; }
+
+    .game-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
+    .nokia-body {
+      background: linear-gradient(180deg, #cfd6cd 0%, #a8b0a6 100%);
+      padding: 18px 18px 60px;
+      border-radius: 22px 22px 28px 28px;
+      box-shadow:
+        inset 0 0 0 2px #7d877a,
+        inset 0 3px 8px rgba(255,255,255,0.5),
+        0 12px 26px rgba(0,0,0,0.25);
+      position: relative;
+      width: 320px;
+    }
+    .nokia-body::before {
+      content: "";
+      position: absolute;
+      top: 6px; left: 50%;
+      transform: translateX(-50%);
+      width: 60px; height: 8px;
+      background: #6b7369;
+      border-radius: 0 0 6px 6px;
+      opacity: 0.6;
+    }
+    .nokia-body::after {
+      content: "NOKIA";
+      position: absolute;
+      bottom: 16px; left: 50%;
+      transform: translateX(-50%);
+      font-family: "Courier New", monospace;
+      font-weight: bold;
+      letter-spacing: 3px;
+      color: #5b6459;
+      font-size: 0.85rem;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+    }
+
+    .lcd {
+      background: #9bbc0f;
+      border: 4px solid #3d4a1f;
+      border-radius: 6px;
+      padding: 8px;
+      box-shadow:
+        inset 0 0 10px rgba(0,0,0,0.35),
+        inset 0 0 30px rgba(60, 80, 20, 0.4);
+      position: relative;
+    }
+    .lcd-top {
+      display: flex;
+      justify-content: space-between;
+      font-family: "Courier New", monospace;
+      font-weight: bold;
+      font-size: 0.8rem;
+      color: #2f3b0e;
+      padding: 0 2px 4px;
+      letter-spacing: 1px;
+    }
+    canvas {
+      display: block;
+      width: 264px;
+      height: 264px;
+      background: #9bbc0f;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .lcd-bottom {
+      font-family: "Courier New", monospace;
+      font-size: 0.65rem;
+      color: #2f3b0e;
+      text-align: center;
+      padding-top: 4px;
+      letter-spacing: 1px;
+      opacity: 0.85;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      padding-top: 30px;
+    }
+    .controls .label {
+      font-size: 0.85rem;
+      color: #666;
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+    }
+    .dpad {
+      display: grid;
+      grid-template-columns: repeat(3, 56px);
+      grid-template-rows: repeat(3, 56px);
+      gap: 6px;
+    }
+    .dpad button {
+      background: #2c2c2c;
+      color: #9bbc0f;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.4rem;
+      cursor: pointer;
+      box-shadow:
+        inset 0 -3px 0 rgba(0,0,0,0.4),
+        0 3px 6px rgba(0,0,0,0.2);
+      transition: transform 0.05s, background 0.1s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .dpad button:hover { background: #3a3a3a; }
+    .dpad button:active {
+      transform: translateY(2px);
+      background: #1a1a1a;
+    }
+    .dpad .up    { grid-area: 1 / 2 / 2 / 3; }
+    .dpad .left  { grid-area: 2 / 1 / 3 / 2; }
+    .dpad .right { grid-area: 2 / 3 / 3 / 4; }
+    .dpad .down  { grid-area: 3 / 2 / 4 / 3; }
+
+    .restart-btn {
+      margin-top: 0.8rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.7rem 1.4rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+    .restart-btn:hover { background: #e64511; }
+
+    .hint {
+      font-size: 0.8rem;
+      color: #888;
+      text-align: center;
+      max-width: 180px;
+      margin-top: 0.4rem;
+      line-height: 1.3;
+    }
+
+    @media (max-width: 700px) {
+      .game-wrap { flex-direction: column; align-items: center; }
+      .controls { padding-top: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">MemeZone</div>
+    <nav>
+      <a href="index.html">Главная</a>
+      <a href="about.html">О нас</a>
+      <a href="write.html">Написать нам</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1>🐍 Змейка</h1>
+
+    <div class="game-wrap">
+      <div class="nokia-body">
+        <div class="lcd">
+          <div class="lcd-top">
+            <span id="score-label">000</span>
+            <span id="hi-label">HI 000</span>
+          </div>
+          <canvas id="game" width="264" height="264"></canvas>
+          <div class="lcd-bottom">PRESS ARROWS TO PLAY</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="label">УПРАВЛЕНИЕ</div>
+        <div class="dpad">
+          <button class="up"    data-dir="up"    aria-label="Вверх">▲</button>
+          <button class="left"  data-dir="left"  aria-label="Влево">◀</button>
+          <button class="right" data-dir="right" aria-label="Вправо">▶</button>
+          <button class="down"  data-dir="down"  aria-label="Вниз">▼</button>
+        </div>
+        <button class="restart-btn" id="restart">Заново</button>
+        <p class="hint">Стрелки или WASD на клавиатуре. Пауза — пробел.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CANVAS_SIZE = 264;
+    const CELL = 12;
+    const COLS = CANVAS_SIZE / CELL;
+    const ROWS = CANVAS_SIZE / CELL;
+
+    const COLOR_BG     = '#9bbc0f';
+    const COLOR_SNAKE  = '#1a2a05';
+    const COLOR_HEAD   = '#0f1a02';
+    const COLOR_FOOD   = '#1a2a05';
+
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const scoreLabel = document.getElementById('score-label');
+    const hiLabel = document.getElementById('hi-label');
+    const restartBtn = document.getElementById('restart');
+
+    let snake, dir, nextDir, food, score, hiScore, tickMs, gameOver, paused, timerId;
+
+    hiScore = parseInt(localStorage.getItem('nokiaSnakeHi') || '0', 10);
+    updateHi();
+
+    function reset() {
+      snake = [
+        { x: 10, y: 11 },
+        { x: 9,  y: 11 },
+        { x: 8,  y: 11 }
+      ];
+      dir = { x: 1, y: 0 };
+      nextDir = { x: 1, y: 0 };
+      score = 0;
+      tickMs = 130;
+      gameOver = false;
+      paused = false;
+      placeFood();
+      updateScore();
+      clearInterval(timerId);
+      timerId = setInterval(tick, tickMs);
+      draw();
+    }
+
+    function placeFood() {
+      while (true) {
+        const f = {
+          x: Math.floor(Math.random() * COLS),
+          y: Math.floor(Math.random() * ROWS)
+        };
+        if (!snake.some(s => s.x === f.x && s.y === f.y)) {
+          food = f;
+          return;
+        }
+      }
+    }
+
+    function updateScore() {
+      scoreLabel.textContent = String(score).padStart(3, '0');
+    }
+    function updateHi() {
+      hiLabel.textContent = 'HI ' + String(hiScore).padStart(3, '0');
+    }
+
+    function tick() {
+      if (gameOver || paused) return;
+
+      dir = nextDir;
+      const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+      if (head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= ROWS) {
+        return endGame();
+      }
+      if (snake.some(s => s.x === head.x && s.y === head.y)) {
+        return endGame();
+      }
+
+      snake.unshift(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        updateScore();
+        placeFood();
+        if (score % 5 === 0 && tickMs > 60) {
+          tickMs -= 10;
+          clearInterval(timerId);
+          timerId = setInterval(tick, tickMs);
+        }
+      } else {
+        snake.pop();
+      }
+
+      draw();
+    }
+
+    function endGame() {
+      gameOver = true;
+      clearInterval(timerId);
+      if (score > hiScore) {
+        hiScore = score;
+        localStorage.setItem('nokiaSnakeHi', String(hiScore));
+        updateHi();
+      }
+      draw();
+    }
+
+    function draw() {
+      ctx.fillStyle = COLOR_BG;
+      ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.04)';
+      for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+          if ((x + y) % 2 === 0) {
+            ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
+          }
+        }
+      }
+
+      drawFood();
+
+      snake.forEach((seg, i) => {
+        ctx.fillStyle = i === 0 ? COLOR_HEAD : COLOR_SNAKE;
+        ctx.fillRect(seg.x * CELL + 1, seg.y * CELL + 1, CELL - 2, CELL - 2);
+      });
+
+      if (gameOver) {
+        drawCenterText('ИГРА ОКОНЧЕНА', 'Нажми «Заново»');
+      } else if (paused) {
+        drawCenterText('ПАУЗА', 'Пробел — продолжить');
+      }
+    }
+
+    function drawFood() {
+      const cx = food.x * CELL + CELL / 2;
+      const cy = food.y * CELL + CELL / 2;
+      const r = CELL / 2 - 1;
+      ctx.fillStyle = COLOR_FOOD;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - r);
+      ctx.lineTo(cx + r, cy);
+      ctx.lineTo(cx, cy + r);
+      ctx.lineTo(cx - r, cy);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawCenterText(line1, line2) {
+      ctx.fillStyle = 'rgba(155, 188, 15, 0.85)';
+      ctx.fillRect(0, CANVAS_SIZE / 2 - 26, CANVAS_SIZE, 52);
+      ctx.fillStyle = '#1a2a05';
+      ctx.font = 'bold 16px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(line1, CANVAS_SIZE / 2, CANVAS_SIZE / 2 - 8);
+      ctx.font = 'bold 11px "Courier New", monospace';
+      ctx.fillText(line2, CANVAS_SIZE / 2, CANVAS_SIZE / 2 + 12);
+    }
+
+    function setDirection(d) {
+      if (gameOver) return;
+      const dirs = {
+        up:    { x: 0,  y: -1 },
+        down:  { x: 0,  y: 1  },
+        left:  { x: -1, y: 0  },
+        right: { x: 1,  y: 0  }
+      };
+      const nd = dirs[d];
+      if (!nd) return;
+      if (nd.x === -dir.x && nd.y === -dir.y) return;
+      nextDir = nd;
+    }
+
+    document.querySelectorAll('.dpad button').forEach(btn => {
+      btn.addEventListener('click', () => setDirection(btn.dataset.dir));
+    });
+
+    document.addEventListener('keydown', (e) => {
+      const k = e.key.toLowerCase();
+      if (['arrowup','w','ц'].includes(k))    { e.preventDefault(); setDirection('up'); }
+      else if (['arrowdown','s','ы'].includes(k))  { e.preventDefault(); setDirection('down'); }
+      else if (['arrowleft','a','ф'].includes(k))  { e.preventDefault(); setDirection('left'); }
+      else if (['arrowright','d','в'].includes(k)) { e.preventDefault(); setDirection('right'); }
+      else if (k === ' ' || k === 'spacebar') {
+        e.preventDefault();
+        if (gameOver) return;
+        paused = !paused;
+        draw();
+      }
+    });
+
+    restartBtn.addEventListener('click', reset);
+
+    reset();
+  </script>
+</body>
+</html>

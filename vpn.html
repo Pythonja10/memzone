@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>VPN | MemeZone</title>
+  <style>
+    :root { --primary: #00BCD4; --dark: #222; --light: #f9f9f9; }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: var(--light); color: var(--dark); }
+    header { background: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    nav a { margin-left: 1.5rem; text-decoration: none; color: var(--dark); font-weight: bold; }
+    .container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { text-align: center; }
+    .meme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
+    .meme-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.08); text-align: center; padding-bottom: 1rem; }
+    .meme-img { width: 100%; height: 180px; background-color: #e0f7fa; display: flex; align-items: center; justify-content: center; color: #333; }
+    button { background: var(--primary); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #00ACC1; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">MemeZone</div>
+    <nav>
+      <a href="index.html">Главная</a>
+      <a href="about.html">О нас</a>
+      <a href="write.html">Написать нам</a>
+    </nav>
+  </header>
+  <div class="container">
+    <h1>🔒 VPN: когда интернет — это квест</h1>
+    <div class="meme-grid">
+      <div class="meme-card">
+        <div class="meme-img">VPN 1</div>
+        <p>«Сайт не грузится». Я: «Сейчас всё починю… или нет».</p>
+        <button onclick="alert('Стабильность — миф')">Стабильность</button>
+      </div>
+      <div class="meme-card">
+        <div class="meme-img">VPN 2</div>
+        <p>Скорость: 50 Кбит/с. Настроение: «Я всё равно досмотрю».</p>
+        <button onclick="alert('Терпение — сила')">Терпение</button>
+      </div>
+      <div class="meme-card">
+        <div class="meme-img">VPN 3</div>
+        <p>«Ошибка подключения». Я: «Ну, хоть кофе попью».</p>
+        <button onclick="alert('Кофе спасает')">Кофе</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
