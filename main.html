@@ -109,8 +109,8 @@
 <div id="lobby" class="lobby">
   <div class="lobby-card">
     <div class="edu-banner">
-      🧪 <b>Учебный проект</b>. Мультиплеер через <b>Trystero (MQTT)</b>.
-      <br><small>Нет сети? Жми «Играть без сети» — боты и дилер.</small>
+      🧪 <b>Учебный проект</b>. Мультиплеер через <b>Trystero (Nostr)</b> — без аккаунтов и регистраций.
+      <br><small>Нет сети? Жми «Играть без сети».</small>
     </div>
     <h1>🃏 Blackjack <span>MemeZone</span></h1>
     <label class="field">
@@ -138,6 +138,7 @@
     </label>
     <button id="joinBtn" class="btn big ghost">🚪 Войти за стол</button>
     <p id="lobbyStatus" class="status"></p>
+    <p class="hint">Хост создаёт стол и получает код. До 6 игроков.</p>
   </div>
 </div>
 
@@ -175,7 +176,7 @@
 const MIN_BET = 10;
 const START_CHIPS = 1000;
 const MAX_PLAYERS = 6;
-const APP_ID = 'mz-blackjack-mqtt-v1';
+const APP_ID = 'mz-blackjack-nostr-v1';
 const SUITS = ['♠','♥','♦','♣'];
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -215,7 +216,7 @@ function cardEl(card){
   el.appendChild(r); el.appendChild(s); return el;
 }
 
-const state = { mode:null, myId:null, code:null, name:'', room:null, isHost:false, hostId:null, hostGame:null, game:null, botCount:0, isLocal:false };
+const state = { mode:null, myId:null, code:null, name:'', room:null, isHost:false, hostId:null, hostGame:null, game:null, botCount:0, isLocal:false, sendState:null, sendJoin:null, sendAction:null, sendChat:null };
 function hgLog(text){ const hg=state.hostGame; if(!hg) return; hg.log.push(text); if(hg.log.length>80) hg.log.shift(); }
 
 function createHostGame(){ return { phase:'betting', round:0, deck:newDeck(6), dealer:{hand:[],reveal:false}, players:[], turn:-1, log:[], timer:null, botTimer:null }; }
@@ -225,7 +226,7 @@ function hostAddPlayer(id, name, isHost, isBot){
   if(hg.players.find(p=>p.id===id)) return;
   if(hg.players.length>=MAX_PLAYERS){ hgLog('Стол полон'); return; }
   hg.players.push({ id, name:(name||'Игрок').slice(0,14), isHost:!!isHost, isBot:!!isBot, chips:START_CHIPS, bet:0, hand:[], status: hg.phase==='betting'?'betting':'waiting', doubled:false, result:null, payout:0, disconnected:false });
-  hgLog(`${(name||'Игрок')} присоединился к столу`);
+  hgLog(`${(name||'Игрок')} присоединился`);
 }
 function publicState(){
   const hg=state.hostGame;
@@ -411,26 +412,27 @@ function hostRequestNext(){ const hg=state.hostGame; if(!hg||hg.phase!=='payout'
 let trysteroModule=null;
 async function loadTrystero(){
   if(trysteroModule) return trysteroModule;
-  try { trysteroModule = await import('https://esm.run/trystero/mqtt'); return trysteroModule; }
+  try { trysteroModule = await import('https://esm.run/trystero'); return trysteroModule; }
   catch(e){ console.error('[Trystero] load failed:', e); return null; }
 }
 
 const RELAYS = [
-  'wss://mqtt.eclipseprojects.io/mqtt',
-  'wss://broker.hivemq.com:8884/mqtt',
-  'wss://broker.emqx.io:8084/mqtt',
-  'wss://test.mosquitto.org:8081/mqtt'
+  'wss://relay.damus.io',
+  'wss://nos.lol',
+  'wss://relay.nostr.band',
+  'wss://nostr.wine',
+  'wss://relay.snort.social'
 ];
 
 async function startHostOnline(name, botCount){
   state.mode='host'; state.name=name; state.hostGame=createHostGame();
   state.botCount=botCount||0; state.isHost=true; state.isLocal=false;
   const code=genCode(); state.code=code;
-  lobbyStatus('Загружаю Trystero…');
+  lobbyStatus('Загружаю Trystero (Nostr)…');
   const t=await loadTrystero();
   if(!t){ lobbyStatus('Не удалось загрузить Trystero. Жми «Играть без сети».'); $('createBtn').disabled=false; $('localBtn').disabled=false; return; }
-  lobbyStatus('Подключаюсь к MQTT-брокерам…');
-  const config = { appId: APP_ID, relayUrls: RELAYS, relayRedundancy: 4 };
+  lobbyStatus('Подключаюсь к ретрансляторам Nostr…');
+  const config = { appId: APP_ID, relayUrls: RELAYS };
   let room;
   try{ room = t.joinRoom(config, code); }
   catch(e){ console.error(e); lobbyStatus('Ошибка Trystero: '+e.message); $('createBtn').disabled=false; $('localBtn').disabled=false; return; }
@@ -462,11 +464,11 @@ async function startHostOnline(name, botCount){
 
 async function startClientOnline(code, name){
   state.mode='client'; state.name=name; state.code=code; state.isHost=false; state.isLocal=false;
-  lobbyStatus('Загружаю Trystero…');
+  lobbyStatus('Загружаю Trystero (Nostr)…');
   const t=await loadTrystero();
   if(!t){ lobbyStatus('Trystero не загрузился.'); $('joinBtn').disabled=false; return; }
   lobbyStatus('Подключаюсь к столу '+code+'…');
-  const config = { appId: APP_ID, relayUrls: RELAYS, relayRedundancy: 4 };
+  const config = { appId: APP_ID, relayUrls: RELAYS };
   let room;
   try{ room = t.joinRoom(config, code); }
   catch(e){ console.error(e); lobbyStatus('Ошибка: '+e.message); $('joinBtn').disabled=false; return; }
