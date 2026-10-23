@@ -84,7 +84,6 @@
     color:#9fc4ae; margin-bottom:.5rem;
     display:flex; justify-content:space-between; align-items:center;
   }
-  /* Сумма дилера — слева, оформлена как бейдж */
   .dealer-title .val{
     color: var(--gold);
     font-weight: 900;
@@ -111,7 +110,6 @@
   .card.back{ background: repeating-linear-gradient(45deg, #14532d 0 6px, #1e7a44 6px 12px); border:2px solid rgba(255,255,255,.85); }
   @keyframes dealIn{ from{ transform: translateY(-18px) rotate(-6deg); opacity:0; } to{ transform:none; opacity:1; } }
 
-  /* ───── ИНФО-БАР: ШУЗ + СБРОС ───── */
   .game-info{
     display:flex; gap:.6rem; flex-wrap:wrap;
     margin-bottom:1rem;
@@ -152,7 +150,6 @@
     transform: none;
   }
 
-  /* ───── ИГРОКИ ───── */
   .players{ display:grid; grid-template-columns: repeat(auto-fit, minmax(215px,1fr)); gap:.8rem; }
   .player{ background: rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:.7rem .8rem; }
   .player.me{ background: rgba(93,204,120,.08); }
@@ -174,6 +171,107 @@
   .toast{ position:fixed; left:50%; bottom:22px; transform: translateX(-50%) translateY(20px); background:#0d3b24; color:#dff5e7; padding:.7rem 1.1rem; border-radius:12px; border:1px solid rgba(93,204,120,.45); opacity:0; pointer-events:none; transition:.25s; z-index:999; max-width:90vw; text-align:center; }
   .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
 
+  /* ───── БОТ-СЧЁТЧИК (правый нижний угол) ───── */
+  .bot-counter{
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    width: 260px;
+    max-width: calc(100vw - 32px);
+    background: linear-gradient(180deg, rgba(8,32,20,.96), rgba(5,20,12,.96));
+    border: 1.5px solid rgba(93,204,120,.4);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.6), 0 0 0 1px rgba(0,0,0,.3);
+    z-index: 500;
+    display: none;
+    overflow: hidden;
+    font-size: .85rem;
+    backdrop-filter: blur(6px);
+  }
+  .bot-counter.open{ display: block; }
+  .bot-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .5rem .8rem;
+    background: rgba(93,204,120,.12);
+    border-bottom: 1px solid rgba(93,204,120,.25);
+    cursor: move;
+    user-select: none;
+  }
+  .bot-header h4{
+    margin: 0;
+    font-size: .82rem;
+    color: #b8f0c8;
+    font-weight: 800;
+    letter-spacing: .3px;
+  }
+  .bot-close{
+    background: rgba(0,0,0,.3);
+    border: none;
+    color: #b8f0c8;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .bot-close:hover{ background: rgba(255,100,100,.3); color: #fff; }
+  .bot-body{ padding: .7rem .8rem; }
+  .bot-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .28rem 0;
+    gap: .5rem;
+  }
+  .bot-row .label{ color: #8fbca0; font-size: .78rem; }
+  .bot-row .value{ color: #fff; font-weight: 800; font-size: .95rem; font-variant-numeric: tabular-nums; }
+  .bot-row .value.good{ color: #7be08e; }
+  .bot-row .value.bad{ color: #ff7b7b; }
+  .bot-row .value.muted{ color: #7fa891; }
+  .bot-divider{ height: 1px; background: rgba(255,255,255,.08); margin: .45rem 0; }
+  .bot-rec{
+    background: rgba(93,204,120,.10);
+    border: 1px solid rgba(93,204,120,.28);
+    border-radius: 8px;
+    padding: .5rem .65rem;
+    text-align: center;
+    margin-top: .55rem;
+  }
+  .bot-rec .rec-label{ font-size: .7rem; color: #8fbca0; text-transform: uppercase; letter-spacing: .6px; }
+  .bot-rec .rec-action{ font-size: 1.05rem; font-weight: 900; color: #b8f0c8; margin-top: .1rem; }
+  .bot-rec .rec-action.hit{ color: #7be08e; }
+  .bot-rec .rec-action.stand{ color: #ffb87b; }
+  .bot-rec .rec-action.double{ color: #7bc8e0; }
+  .bot-rec .rec-action.none{ color: #7fa891; font-size: .85rem; }
+  .bot-note{
+    font-size: .7rem;
+    color: #8fbca0;
+    line-height: 1.4;
+    margin-top: .5rem;
+    text-align: center;
+  }
+  .bot-toggle-btn{
+    background: rgba(0,0,0,.08);
+    color: #123;
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 9px;
+    padding: .5rem .7rem;
+    font-size: .85rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+  }
+  .bot-toggle-btn:hover{ background: rgba(0,0,0,.15); }
+  .bot-toggle-btn.active{ background: rgba(93,204,120,.25); border-color: rgba(93,204,120,.6); }
+
   @media (max-width:520px){
     .card{ width:46px; height:66px; padding:4px 5px; }
     .card .r{ font-size:.9rem; }
@@ -181,6 +279,7 @@
     .info-box .num{ font-size:1rem; }
     .row2{ grid-template-columns: 1fr; }
     .card-stack{ width: 36px; height: 50px; }
+    .bot-counter{ width: 240px; right: 10px; bottom: 10px; }
   }
 </style>
 </head>
@@ -193,7 +292,7 @@
       <br><small>Нет сети? Жми «Играть без сети» — боты и дилер, весь функционал работает.</small>
     </div>
     <h1>🃏 Blackjack <span>MemeZone</span></h1>
-    <p class="lead">Шуз 1–6 колод · сброс и шуз рубашкой вверх · боты.</p>
+    <p class="lead">Шуз 1–6 колод · сброс и шуз рубашкой вверх · боты · <b>Ctrl+Shift+F</b> — счётчик</p>
 
     <label class="field">
       <span>Твоё имя</span>
@@ -235,7 +334,7 @@
     </label>
     <button id="joinBtn" class="btn big ghost">🚪 Войти за стол</button>
     <p id="lobbyStatus" class="status"></p>
-    <p class="hint">Хост создаёт стол и получает код. До 6 игроков.</p>
+    <p class="hint">Хост создаёт стол и получает код. До 6 игроков. Онлайн не подключился? Жми «Играть без сети».</p>
   </div>
 </div>
 
@@ -247,6 +346,7 @@
       <span id="localBadge" class="local-badge" style="display:none">💻 Локально</span>
       <span class="room">Стол: <b id="roomCode">----</b></span>
       <button id="copyBtn" class="btn small ghost">📋</button>
+      <button id="botToggleBtn" class="bot-toggle-btn" title="Счётчик (Ctrl+Shift+F)">🧮</button>
       <span id="roundInfo" class="room"></span>
       <a href="index.html">← На главную</a>
     </div>
@@ -260,7 +360,6 @@
       <div class="hand" id="dealerHand"></div>
     </section>
 
-    <!-- ───── ИНФО-БАР: ШУЗ + СБРОС (оба рубашкой вверх) ───── -->
     <div class="game-info">
       <div class="info-box">
         <div class="card-stack" id="shoeStack"></div>
@@ -288,6 +387,52 @@
       </div>
     </section>
   </main>
+</div>
+
+<!-- ───── БОТ-СЧЁТЧИК ───── -->
+<div class="bot-counter" id="botCounter">
+  <div class="bot-header" id="botHeader">
+    <h4>🧮 Счётчик (Hi-Lo)</h4>
+    <button class="bot-close" id="botClose" title="Закрыть (Ctrl+Shift+F)">×</button>
+  </div>
+  <div class="bot-body">
+    <div class="bot-row">
+      <span class="label">Running count</span>
+      <span class="value" id="botRC">0</span>
+    </div>
+    <div class="bot-row">
+      <span class="label">True count</span>
+      <span class="value" id="botTC">0.0</span>
+    </div>
+    <div class="bot-row">
+      <span class="label">Колод осталось</span>
+      <span class="value muted" id="botDecksLeft">—</span>
+    </div>
+    <div class="bot-row">
+      <span class="label">Увидел карт</span>
+      <span class="value muted" id="botSeen">0</span>
+    </div>
+
+    <div class="bot-divider"></div>
+
+    <div class="bot-row">
+      <span class="label">Моя рука</span>
+      <span class="value" id="botMyHand">—</span>
+    </div>
+    <div class="bot-row">
+      <span class="label">Карта дилера</span>
+      <span class="value" id="botDealerUp">—</span>
+    </div>
+
+    <div class="bot-rec">
+      <div class="rec-label">Рекомендация</div>
+      <div class="rec-action none" id="botRec">нет данных</div>
+    </div>
+
+    <div class="bot-note" id="botNote">
+      Hi-Lo: 2–6 = +1, 7–9 = 0, 10–A = −1
+    </div>
+  </div>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -319,11 +464,12 @@ function shuffleArray(arr){
   }
   return arr;
 }
+let cardIdCounter = 0;
 function newDeck(n){
   const d = [];
   for (let i = 0; i < n; i++)
     for (const s of SUITS)
-      for (const r of RANKS) d.push({ r, s });
+      for (const r of RANKS) d.push({ r, s, _id: 'c' + (cardIdCounter++) });
   return shuffleArray(d);
 }
 function drawCard(hg){
@@ -331,9 +477,11 @@ function drawCard(hg){
     if (hg.discard.length > 0){
       hg.deck = shuffleArray(hg.discard.slice());
       hg.discard = [];
+      hg.shoeRound = (hg.shoeRound || 0) + 1;
       pushLog(`🔄 Шуз перемешан (${hg.deck.length} карт из сброса)`);
     } else {
       hg.deck = newDeck(hg.numDecks);
+      hg.shoeRound = (hg.shoeRound || 0) + 1;
       pushLog(`🔄 Новый шуз (${hg.deck.length} карт)`);
     }
   }
@@ -366,8 +514,6 @@ function cardEl(card){
   el.appendChild(r); el.appendChild(s);
   return el;
 }
-
-/* Визуальная стопка рубашек — БЕЗ значений карт */
 function renderStack(el, count){
   el.innerHTML = '';
   if (count === 0){
@@ -384,6 +530,189 @@ function renderStack(el, count){
   }
 }
 
+/* ========== БОТ-СЧЁТЧИК ========== */
+const bot = {
+  visible: false,
+  seenIds: new Set(),
+  runningCount: 0,
+  lastShoeRound: -1,
+  totalDecks: 6
+};
+
+function botToggle(){
+  bot.visible = !bot.visible;
+  const el = $('botCounter');
+  if (bot.visible) el.classList.add('open');
+  else el.classList.remove('open');
+  $('botToggleBtn').classList.toggle('active', bot.visible);
+  if (bot.visible) updateBotFromGame();
+}
+
+function hiLoValue(card){
+  if (!card || card.r === '?') return 0;
+  const r = card.r;
+  if (['2','3','4','5','6'].includes(r)) return 1;
+  if (['7','8','9'].includes(r)) return 0;
+  return -1; // 10, J, Q, K, A
+}
+
+function updateBotFromGame(){
+  const g = game;
+  if (!g) return;
+
+  // Сброс при перетасовке
+  const sr = g.shoeRound || 0;
+  if (sr !== bot.lastShoeRound){
+    bot.seenIds.clear();
+    bot.runningCount = 0;
+    bot.lastShoeRound = sr;
+  }
+
+  bot.totalDecks = g.numDecks || 6;
+
+  // Считаем новые открытые карты
+  // Дилер: первая карта всегда открыта, остальные — когда reveal
+  g.dealer.hand.forEach((c, i) => {
+    if (!c || c.r === '?') return;
+    if (!c._id) return;
+    if (bot.seenIds.has(c._id)) return;
+    // Первая карта дилера — открыта всегда (это upcard). Остальные — только если reveal.
+    // Но в state уже приходят только открытые (закрытая — {r:'?',s:'?'}), так что
+    // любая карта с реальным r — уже открыта.
+    bot.seenIds.add(c._id);
+    bot.runningCount += hiLoValue(c);
+  });
+
+  // Игроки: все открытые карты
+  g.players.forEach(p => {
+    (p.hand || []).forEach(c => {
+      if (!c || c.r === '?') return;
+      if (!c._id) return;
+      if (bot.seenIds.has(c._id)) return;
+      bot.seenIds.add(c._id);
+      bot.runningCount += hiLoValue(c);
+    });
+  });
+
+  // True count
+  const decksLeft = Math.max(0.25, g.shoeRemaining / 52);
+  const tc = bot.runningCount / decksLeft;
+
+  // Обновляем UI
+  const rcEl = $('botRC');
+  rcEl.textContent = (bot.runningCount > 0 ? '+' : '') + bot.runningCount;
+  rcEl.className = 'value ' + (bot.runningCount > 0 ? 'good' : bot.runningCount < 0 ? 'bad' : '');
+
+  const tcEl = $('botTC');
+  tcEl.textContent = (tc > 0 ? '+' : '') + tc.toFixed(1);
+  tcEl.className = 'value ' + (tc >= 2 ? 'good' : tc <= -1 ? 'bad' : '');
+
+  $('botDecksLeft').textContent = decksLeft.toFixed(1) + ' / ' + bot.totalDecks;
+  $('botSeen').textContent = bot.seenIds.size;
+
+  // Моя рука и карта дилера
+  const me = g.players.find(p => p.id === myId);
+  const dealerUp = g.dealer.hand[0] && g.dealer.hand[0].r !== '?' ? g.dealer.hand[0] : null;
+
+  if (me && me.hand && me.hand.length){
+    const v = handValue(me.hand);
+    $('botMyHand').textContent = v.total + (v.soft ? ' (мягк.)' : '') + ' · ' + me.hand.map(c=>c.r).join(' ');
+    $('botMyHand').className = 'value';
+  } else {
+    $('botMyHand').textContent = '—';
+    $('botMyHand').className = 'value muted';
+  }
+
+  if (dealerUp){
+    $('botDealerUp').textContent = dealerUp.r + dealerUp.s;
+    $('botDealerUp').className = 'value';
+  } else {
+    $('botDealerUp').textContent = '—';
+    $('botDealerUp').className = 'value muted';
+  }
+
+  // Рекомендация
+  const recEl = $('botRec');
+  const noteEl = $('botNote');
+  if (!me || !me.hand || !me.hand.length || g.phase !== 'playing'){
+    recEl.textContent = g.phase === 'betting' ? 'сначала ставка' : 'нет данных';
+    recEl.className = 'rec-action none';
+  } else if (g.turn >= 0 && g.players[g.turn] && g.players[g.turn].id === myId){
+    const rec = getRecommendation(me.hand, dealerUp, tc, me.chips >= me.bet && me.hand.length === 2);
+    if (rec === 'double') { recEl.textContent = 'УДВОИТЬ'; recEl.className = 'rec-action double'; }
+    else if (rec === 'hit') { recEl.textContent = 'ЕЩЁ (hit)'; recEl.className = 'rec-action hit'; }
+    else if (rec === 'stand') { recEl.textContent = 'ХВАТИТ (stand)'; recEl.className = 'rec-action stand'; }
+    else { recEl.textContent = rec; recEl.className = 'rec-action none'; }
+
+    // Примечание по счёту
+    if (Math.abs(tc) >= 2){
+      noteEl.textContent = tc >= 2
+        ? `TC +${tc.toFixed(1)} — много мелких карт, шуз "горячий"`
+        : `TC ${tc.toFixed(1)} — много десяток, шуз "холодный"`;
+    } else {
+      noteEl.textContent = 'Hi-Lo: 2–6 = +1, 7–9 = 0, 10–A = −1';
+    }
+  } else {
+    recEl.textContent = 'ход не твой';
+    recEl.className = 'rec-action none';
+    noteEl.textContent = 'Hi-Lo: 2–6 = +1, 7–9 = 0, 10–A = −1';
+  }
+}
+
+function getRecommendation(hand, dealerUp, trueCount, canDouble){
+  const v = handValue(hand);
+  const pv = v.total;
+  if (!dealerUp) return 'hit';
+  const dr = dealerUp.r;
+  const dv = dr === 'A' ? 11 : ['K','Q','J','10'].includes(dr) ? 10 : Number(dr);
+
+  if (pv >= 21) return 'stand';
+  if (pv <= 8) return 'hit';
+
+  if (v.soft){
+    if (pv >= 19) return 'stand';
+    if (pv === 18){
+      if (dv >= 3 && dv <= 8) return 'stand';
+      return 'hit';
+    }
+    if (pv === 17){
+      if (canDouble && dv >= 3 && dv <= 6) return 'double';
+      return 'hit';
+    }
+    if (pv >= 15 && pv <= 16){
+      if (canDouble && dv >= 4 && dv <= 6) return 'double';
+      return 'hit';
+    }
+    if (pv >= 13 && pv <= 14){
+      if (canDouble && dv >= 5 && dv <= 6) return 'double';
+      return 'hit';
+    }
+    return 'hit';
+  }
+
+  if (pv >= 17) return 'stand';
+
+  if (pv >= 13 && pv <= 16){
+    if (dv <= 6) return 'stand';
+    // При высоком положительном счёте можно stand 16 vs 10, 15 vs 10
+    if (trueCount >= 4 && pv === 16 && dv >= 9) return 'stand';
+    if (trueCount >= 3 && pv === 15 && dv === 10) return 'stand';
+    if (trueCount >= 0 && pv === 16 && dv === 10 && trueCount >= 4) return 'stand';
+    return 'hit';
+  }
+
+  if (pv === 12){
+    if (dv >= 4 && dv <= 6) return 'stand';
+    if (dv >= 2 && dv <= 3 && trueCount >= 3) return 'stand';
+    return 'hit';
+  }
+
+  if (pv === 11) return canDouble ? 'double' : 'hit';
+  if (pv === 10) return canDouble && dv <= 9 ? 'double' : 'hit';
+  if (pv === 9) return canDouble && dv >= 3 && dv <= 6 ? 'double' : 'hit';
+  return 'hit';
+}
+
 /* ========== YJS + WEBRTC ========== */
 let ydoc, provider, yGame, yActions, yLog;
 let isHost = false, myId = null, myName = '', hostId = null;
@@ -391,11 +720,9 @@ let game = null, botCount = 0, deckCount = 6, isLocal = false;
 let hg = null;
 let localLog = [];
 
-const SIGNALING_SERVERS = [
-  'wss://signaling.yjs.dev',
-  'wss://y-webrtc-signaling-eu.herokuapp.com',
-  'wss://y-webrtc-signaling-us.herokuapp.com'
-];
+// Только живой сигнальный сервер (без мёртвых Heroku)
+const SIGNALING_SERVERS = ['wss://signaling.yjs.dev'];
+let connectionTimer = null;
 
 function initYjs(roomCode, asHost){
   ydoc = new Y.Doc();
@@ -403,20 +730,21 @@ function initYjs(roomCode, asHost){
   yActions = ydoc.getArray('actions');
   yLog = ydoc.getArray('log');
 
+  isHost = asHost;
+  myId = asHost ? 'host-' + Math.random().toString(36).slice(2,8) : 'client-' + Math.random().toString(36).slice(2,8);
+
   provider = new WebrtcProvider('blackjack-' + roomCode, ydoc, {
     signaling: SIGNALING_SERVERS,
     password: 'mz-blackjack-room-' + roomCode,
     maxConns: 10
   });
 
-  isHost = asHost;
-  myId = asHost ? 'host-' + Math.random().toString(36).slice(2,8) : 'client-' + Math.random().toString(36).slice(2,8);
-
   yGame.observe(() => {
     const raw = yGame.get('state');
     if (raw) {
       game = JSON.parse(raw);
       render(game);
+      if (bot.visible) updateBotFromGame();
     }
   });
 
@@ -435,8 +763,34 @@ function initYjs(roomCode, asHost){
     }
   });
 
+  // Таймаут 6 секунд: если не подключились — показываем ошибку и предлагаем локально
+  clearTimeout(connectionTimer);
+  connectionTimer = setTimeout(() => {
+    if (!game){
+      lobbyStatus('⚠️ Онлайн не подключился за 6 секунд. Скорее всего сигнальный сервер заблокирован. Играй без сети!');
+      const btn = document.createElement('button');
+      btn.className = 'btn big local';
+      btn.style.marginTop = '.5rem';
+      btn.textContent = '🤖 Переключиться на локальную игру';
+      btn.onclick = () => {
+        $('lobby').style.display = '';
+        $('game').style.display = 'none';
+        const n = ($('nameInput').value || '').trim().slice(0,14) || 'Игрок';
+        const b = Math.max(0, Math.min(5, parseInt($('botCountInput').value,10) || 0));
+        const d = Math.max(1, Math.min(6, parseInt($('deckCountInput').value,10) || 6));
+        startLocal(n, b, d);
+      };
+      const wrap = $('lobbyStatus').parentNode;
+      if (!document.getElementById('fallbackBtn')){
+        btn.id = 'fallbackBtn';
+        wrap.appendChild(btn);
+      }
+    }
+  }, 6000);
+
   provider.on('status', ev => {
     if (ev.status === 'connected'){
+      clearTimeout(connectionTimer);
       lobbyStatus('Подключено к столу ' + roomCode);
       if (asHost) initHostGame();
       else yActions.push([{ type: 'join', id: myId, name: myName }]);
@@ -446,8 +800,8 @@ function initYjs(roomCode, asHost){
   });
 
   provider.on('error', (err) => {
-    console.error('[WebRTC] Signaling error:', err);
-    lobbyStatus('Ошибка сигналинга. Попробуй ещё раз или жми «Играть без сети».');
+    console.error('[WebRTC] error:', err);
+    lobbyStatus('Ошибка сигналинга. Играй локально кнопкой ниже.');
   });
 }
 
@@ -458,6 +812,7 @@ function initHostGame(){
     deck: newDeck(deckCount),
     discard: [],
     numDecks: deckCount,
+    shoeRound: 0,
     dealer: { hand: [], reveal: false },
     players: [], turn: -1,
     timer: null, botTimer: null
@@ -491,13 +846,12 @@ function pushLog(text){
 
 function publishState(){
   if (!hg) return;
-  // ВАЖНО: сюда НЕ кладём discardLast и содержимое сброса —
-  // клиенты не должны видеть сыгранные карты. Только счётчики.
   const pub = {
     phase: hg.phase, round: hg.round, turn: hg.turn, hostId: myId,
     numDecks: hg.numDecks,
     shoeRemaining: hg.deck.length,
     shoeTotal: hg.numDecks * 52,
+    shoeRound: hg.shoeRound || 0,
     discardCount: hg.discard.length,
     dealer: {
       hand: hg.dealer.hand.map((c,i)=> (i===0||hg.dealer.reveal)?c:{r:'?',s:'?'}),
@@ -517,6 +871,7 @@ function publishState(){
   if (isLocal){
     game = pub;
     render(game);
+    if (bot.visible) updateBotFromGame();
   } else {
     yGame.set('state', JSON.stringify(pub));
   }
@@ -525,20 +880,16 @@ function publishState(){
 function startBetting(){
   if (!hg) return;
   clearTimeout(hg.timer); clearTimeout(hg.botTimer);
-
   if (hg.round > 0) collectToDiscard(hg);
-
   hg.phase = 'betting';
   hg.round = (hg.round || 0) + 1;
   hg.dealer = { hand: [], reveal: false };
   hg.turn = -1;
-
   hg.players.forEach(p => {
     p.hand = []; p.bet = 0; p.doubled = false; p.result = null; p.payout = 0;
     if (p.chips < MIN_BET){ p.chips += 500; pushLog(`🏦 ${p.name} получает 500 фишек`); }
     p.status = 'betting';
   });
-
   pushLog(`── Раунд ${hg.round} ── Делайте ставки! (в шузе ${hg.deck.length}, в сбросе ${hg.discard.length})`);
   publishState();
   botBetting();
@@ -551,9 +902,9 @@ function botBetting(){
   clearTimeout(hg.botTimer);
   hg.botTimer = setTimeout(() => {
     if (!hg || hg.phase !== 'betting') return;
-    hg.players.filter(p => p.isBot && p.status === 'betting').forEach(bot => {
+    hg.players.filter(p => p.isBot && p.status === 'betting').forEach(botP => {
       if (!hg || hg.phase !== 'betting') return;
-      const cur = hg.players.find(p => p.id === bot.id);
+      const cur = hg.players.find(p => p.id === botP.id);
       if (cur && cur.status === 'betting'){
         const opts = [10,25,50,100]; let amt = opts[rand(opts.length)];
         if (amt > cur.chips) amt = cur.chips;
@@ -599,24 +950,18 @@ function maybeAutoDeal(){
 function deal(){
   if (!hg || hg.phase !== 'betting') return;
   clearTimeout(hg.timer); clearTimeout(hg.botTimer);
-
   const active = hg.players.filter(p => p.status === 'ready');
   if (!active.length){ startBetting(); return; }
-
   hg.players.forEach(p => { if (p.status === 'betting') p.status = 'sitout'; });
-
   hg.phase = 'dealing';
   hg.dealer = { hand: [], reveal: false };
   if (!hg.round) hg.round = 1;
-
   active.forEach(p => { p.hand = []; p.status = 'playing'; p.doubled = false; p.result = null; p.payout = 0; });
-
   for (let i = 0; i < 2; i++){
     active.forEach(p => p.hand.push(drawCard(hg)));
     hg.dealer.hand.push(drawCard(hg));
   }
   active.forEach(p => { if (isBlackjack(p.hand)) p.status = 'blackjack'; });
-
   if (isBlackjack(hg.dealer.hand)){
     hg.phase = 'dealer'; hg.dealer.reveal = true;
     pushLog('У дилера блэкджек!');
@@ -624,11 +969,9 @@ function deal(){
     hg.timer = setTimeout(payout, 1400);
     return;
   }
-
   if (hg.players.filter(p => p.status === 'playing').length === 0){
     publishState(); dealerPlay(); return;
   }
-
   hg.phase = 'playing'; hg.turn = -1;
   publishState(); advance();
 }
@@ -642,11 +985,8 @@ function advance(){
     pushLog(`${hg.players[i].name} отключился — авто-стоп`);
     i++; while (i < hg.players.length && hg.players[i].status !== 'playing') i++;
   }
-  if (i < hg.players.length){
-    hg.turn = i; publishState(); botTurn();
-  } else {
-    hg.turn = -1; dealerPlay();
-  }
+  if (i < hg.players.length){ hg.turn = i; publishState(); botTurn(); }
+  else { hg.turn = -1; dealerPlay(); }
 }
 
 function botTurn(){
@@ -677,21 +1017,18 @@ function hostAction(playerId, action){
   if (idx !== hg.turn) return;
   const p = hg.players[idx];
   if (!p || p.status !== 'playing') return;
-
   if (action === 'hit'){
     p.hand.push(drawCard(hg));
     const v = handValue(p.hand);
     if (v.total > 21) p.status = 'bust';
     else if (v.total === 21) p.status = 'stood';
-  } else if (action === 'stand'){
-    p.status = 'stood';
-  } else if (action === 'double'){
+  } else if (action === 'stand'){ p.status = 'stood'; }
+  else if (action === 'double'){
     if (p.hand.length !== 2 || p.chips < p.bet) return;
     p.chips -= p.bet; p.bet *= 2; p.doubled = true;
     p.hand.push(drawCard(hg));
     p.status = handValue(p.hand).total > 21 ? 'bust' : 'stood';
   } else return;
-
   if (p.status === 'bust') pushLog(`${p.isBot?'🤖 ':''}${p.name} — перебор`);
   if (p.status === 'stood') pushLog(`${p.isBot?'🤖 ':''}${p.name} — хватит`);
   publishState();
@@ -712,9 +1049,7 @@ function dealerPlay(){
       hg.dealer.hand.push(drawCard(hg));
       publishState();
       hg.timer = setTimeout(step, 700);
-    } else {
-      hg.timer = setTimeout(payout, 700);
-    }
+    } else { hg.timer = setTimeout(payout, 700); }
   };
   hg.timer = setTimeout(step, 700);
 }
@@ -724,17 +1059,14 @@ function payout(){
   clearTimeout(hg.timer); clearTimeout(hg.botTimer);
   const dv = handValue(hg.dealer.hand).total;
   const dBJ = isBlackjack(hg.dealer.hand);
-
   hg.players.forEach(p => {
     if (p.disconnected){ p.chips += p.bet; return; }
     if (!p.hand || !p.hand.length) return;
     if (['sitout','waiting','betting','ready','dealing'].includes(p.status)) return;
-
     if (p.status === 'bust'){
       p.result = 'lose'; p.payout = 0; p.status = 'done';
       pushLog(`${p.isBot?'🤖 ':''}${p.name} — проигрыш ${p.bet}`); return;
     }
-
     const pv = handValue(p.hand).total;
     const pBJ = isBlackjack(p.hand);
     let payoutAmt = 0, result = 'lose';
@@ -743,14 +1075,12 @@ function payout(){
     else if (pv > dv){ result = 'win'; payoutAmt = p.bet * 2; }
     else if (pv === dv){ result = 'push'; payoutAmt = p.bet; }
     else { result = 'lose'; payoutAmt = 0; }
-
     p.result = result; p.payout = payoutAmt; p.chips += payoutAmt; p.status = 'done';
     if (result === 'blackjack') pushLog(`${p.isBot?'🤖 ':''}${p.name} — БЛЭКДЖЕК! +${payoutAmt - p.bet}`);
     else if (result === 'win') pushLog(`${p.isBot?'🤖 ':''}${p.name} — выигрыш +${payoutAmt - p.bet}`);
     else if (result === 'push') pushLog(`${p.isBot?'🤖 ':''}${p.name} — ничья`);
     else pushLog(`${p.isBot?'🤖 ':''}${p.name} — проигрыш ${p.bet}`);
   });
-
   hg.phase = 'payout';
   pushLog('Раунд окончен. Карты уйдут в сброс при новом раунде.');
   publishState();
@@ -761,22 +1091,16 @@ function hostRequestNext(){
   startBetting();
 }
 
-/* ========== ДЕЙСТВИЯ КЛИЕНТОВ ========== */
 function handleAction(a){
   if (!isHost || !hg) return;
-  if (a.type === 'join'){
-    addHostPlayer(a.id, a.name, false, false);
-    publishState();
-  } else if (a.type === 'bet') hostBet(a.id, Number(a.amount) || 0);
+  if (a.type === 'join'){ addHostPlayer(a.id, a.name, false, false); publishState(); }
+  else if (a.type === 'bet') hostBet(a.id, Number(a.amount) || 0);
   else if (a.type === 'clearbet') hostClearBet(a.id);
   else if (a.type === 'action') hostAction(a.id, String(a.action));
   else if (a.type === 'next') hostRequestNext();
   else if (a.type === 'chat'){ pushLog(`💬 ${a.name || 'Гость'}: ${String(a.text || '').slice(0, 120)}`); publishState(); }
 }
-function sendAction(obj){
-  if (isHost) return;
-  yActions.push([obj]);
-}
+function sendAction(obj){ if (isHost) return; yActions.push([obj]); }
 
 /* ========== ЛОКАЛЬНЫЙ РЕЖИМ ========== */
 function startLocal(name, bots, decks){
@@ -788,7 +1112,7 @@ function startLocal(name, bots, decks){
   isHost = true;
   hg = {
     phase: 'betting', round: 0,
-    deck: newDeck(decks), discard: [], numDecks: decks,
+    deck: newDeck(decks), discard: [], numDecks: decks, shoeRound: 0,
     dealer: { hand: [], reveal: false },
     players: [], turn: -1, timer: null, botTimer: null
   };
@@ -812,12 +1136,10 @@ function render(g){
   else g.dealer.hand.forEach(c => dh.appendChild(cardEl(c)));
   $('dealerValue').textContent = g.dealer.hand.length ? g.dealer.value : '';
 
-  // Шуз и сброс — визуальные стопки рубашек + счётчики
   $('shoeRemaining').textContent = g.shoeRemaining;
   $('shoeTotal').textContent = g.shoeTotal;
   $('shoeDecks').textContent = g.numDecks;
   $('discardCount').textContent = g.discardCount;
-
   renderStack($('shoeStack'), g.shoeRemaining);
   renderStack($('discardStack'), g.discardCount);
 
@@ -868,7 +1190,6 @@ function renderLog(logArr){
 function renderControls(g){
   const el = $('controls'); el.innerHTML = '';
   const me = g.players.find(p => p.id === myId);
-
   if (g.phase === 'betting'){
     if (!me){ el.innerHTML = '<span class="note">Ты зритель.</span>'; return; }
     if (me.status === 'betting'){
@@ -894,7 +1215,6 @@ function renderControls(g){
     }
     el.innerHTML = '<span class="note">Ты пасуешь.</span>'; return;
   }
-
   if (g.phase === 'playing'){
     const tp = g.turn >= 0 ? g.players[g.turn] : null;
     if (tp && tp.id === myId){
@@ -915,7 +1235,6 @@ function renderControls(g){
     }
     return;
   }
-
   if (g.phase === 'dealer'){ el.innerHTML = '<span class="note">Дилер играет…</span>'; return; }
   if (g.phase === 'payout'){
     const n = document.createElement('span'); n.className = 'note'; n.textContent = 'Раунд окончен.'; el.appendChild(n);
@@ -936,7 +1255,6 @@ function showGame(){
   $('localBadge').style.display = isLocal ? '' : 'none';
 }
 
-/* ========== ЗАПУСК ========== */
 function startHostOnline(name, bots, decks){
   myName = name; botCount = bots; deckCount = decks;
   const code = genCode();
@@ -945,7 +1263,6 @@ function startHostOnline(name, bots, decks){
   showGame();
   $('roomCode').textContent = code;
 }
-
 function startClientOnline(code, name){
   myName = name;
   lobbyStatus('Подключаюсь к столу ' + code + '…');
@@ -965,7 +1282,6 @@ function init(){
     try{ localStorage.setItem('mzbj-name', n); }catch(e){}
     startLocal(n, b, d);
   });
-
   $('createBtn').addEventListener('click', () => {
     const n = ($('nameInput').value || '').trim().slice(0,14) || 'Игрок';
     const b = Math.max(0, Math.min(5, parseInt($('botCountInput').value,10) || 0));
@@ -973,7 +1289,6 @@ function init(){
     try{ localStorage.setItem('mzbj-name', n); }catch(e){}
     startHostOnline(n, b, d);
   });
-
   $('joinBtn').addEventListener('click', () => {
     const n = ($('nameInput').value || '').trim().slice(0,14) || 'Игрок';
     const c = ($('codeInput').value || '').trim().toUpperCase();
@@ -981,7 +1296,6 @@ function init(){
     try{ localStorage.setItem('mzbj-name', n); }catch(e){}
     startClientOnline(c, n);
   });
-
   $('codeInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('joinBtn').click(); });
 
   $('copyBtn').addEventListener('click', async () => {
@@ -996,6 +1310,43 @@ function init(){
     else sendAction({type:'chat', name:myName, text:t});
   });
   $('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('chatSend').click(); });
+
+  // Бот-счётчик
+  $('botClose').addEventListener('click', botToggle);
+  $('botToggleBtn').addEventListener('click', botToggle);
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f'){
+      e.preventDefault();
+      botToggle();
+    }
+  });
+
+  // Перетаскивание панели бота
+  (function makeDraggable(){
+    const el = $('botCounter');
+    const hdr = $('botHeader');
+    let sx = 0, sy = 0, ex = 0, ey = 0, dragging = false;
+    hdr.addEventListener('mousedown', e => {
+      dragging = true;
+      sx = e.clientX; sy = e.clientY;
+      const r = el.getBoundingClientRect();
+      ex = r.left; ey = r.top;
+      el.style.right = 'auto'; el.style.bottom = 'auto';
+      el.style.left = ex + 'px'; el.style.top = ey + 'px';
+      document.body.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const nx = ex + (e.clientX - sx);
+      const ny = ey + (e.clientY - sy);
+      el.style.left = Math.max(0, Math.min(window.innerWidth - el.offsetWidth, nx)) + 'px';
+      el.style.top = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, ny)) + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+      dragging = false;
+      document.body.style.userSelect = '';
+    });
+  })();
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
