@@ -1,647 +1,338 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MemeZone Blackjack — многопользовательский блэкджек</title>
-<style>
-  :root{
-    --green:        hsl(125, 55%, 62%);
-    --green-dark:   hsl(125, 55%, 42%);
-    --green-darker: hsl(125, 60%, 28%);
-    --gold: #ffd166;
-  }
-  *{ box-sizing: border-box; }
-  body{
-    margin:0; min-height:100vh; color:#eaf7ef;
-    font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
-    background: radial-gradient(ellipse at 50% -20%, #1c6b41 0%, #0d3521 55%, #061a10 100%) fixed;
-  }
-  .edu-banner{
-    background: rgba(255,200,50,.10); border: 1px solid rgba(255,200,50,.35);
-    color: #ffd166; padding: .75rem .9rem; border-radius: 12px;
-    font-size: .8rem; line-height: 1.5; margin-bottom: 1.1rem; text-align: center;
-  }
-  .edu-banner b{ color: #ffea9a; }
-  .lobby{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:1.5rem; }
-  .lobby-card{
-    width:100%; max-width:460px; padding:1.7rem 1.4rem;
-    background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
-    border-radius:18px; backdrop-filter: blur(8px);
-    box-shadow: 0 20px 60px rgba(0,0,0,.45);
-  }
-  .lobby-card h1{ margin:0 0 .6rem; font-size:1.5rem; text-align:center; }
-  .lobby-card h1 span{ color: var(--green); }
-  .lead{ text-align:center; color:#b9d9c6; font-size:.92rem; line-height:1.5; margin:0 0 1.2rem; }
-  .field{ display:block; margin-bottom:.85rem; }
-  .field span{ display:block; font-size:.75rem; color:#9fc4ae; margin-bottom:.32rem; letter-spacing:.6px; text-transform:uppercase; }
-  .field input, .field select, .chat-row input{
-    width:100%; padding:.7rem .85rem; border-radius:10px; font-family:inherit;
-    border:1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.28);
-    color:#fff; font-size:.95rem; outline:none;
-  }
-  .field select option{ background:#123; color:#fff; }
-  .divider{ display:flex; align-items:center; gap:.8rem; color:#7fa891; font-size:.78rem; margin:.85rem 0; }
-  .divider::before, .divider::after{ content:""; flex:1; height:1px; background: rgba(255,255,255,.15); }
-  .status{ text-align:center; font-size:.85rem; color: var(--gold); min-height:1.2em; margin:.7rem 0 .3rem; }
-  .hint{ text-align:center; font-size:.76rem; color:#7fa891; line-height:1.5; margin:.8rem 0 0; }
-  .btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:.35rem;
-    background: linear-gradient(135deg, var(--green), var(--green-dark));
-    color:#062615; border:none; border-radius:12px; padding:.65rem 1.1rem;
-    font-weight:800; font-size:.92rem; cursor:pointer; font-family:inherit;
-    box-shadow: 0 4px 14px rgba(0,0,0,.3); transition: .12s;
-  }
-  .btn:hover{ filter:brightness(1.08); transform: translateY(-1px); }
-  .btn:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
-  .btn.big{ width:100%; padding:.85rem; font-size:1rem; margin-bottom:.4rem; }
-  .btn.ghost{ background: rgba(255,255,255,.10); color:#dff5e7; border:1px solid rgba(255,255,255,.22); box-shadow:none; }
-  .btn.local{ background: linear-gradient(135deg, #ffd166, #f0a800); color:#3a2200; }
-  .btn.small{ padding:.5rem .7rem; font-size:.85rem; border-radius:9px; }
-  .game{ padding-bottom:1.5rem; }
-  header{
-    position:sticky; top:0; z-index:50; background:#fff; color:#123;
-    padding:.6rem 1rem; display:flex; justify-content:space-between; flex-wrap:wrap;
-    gap:.6rem; border-bottom:3px solid var(--green); box-shadow: 0 2px 10px rgba(0,0,0,.25);
-  }
-  header .logo{ font-weight:900; color: var(--green-darker); font-size:.95rem; }
-  .head-right{ display:flex; align-items:center; gap:.55rem; flex-wrap:wrap; font-size:.82rem; }
-  .head-right .room b{ color: var(--green-darker); font-family: ui-monospace, monospace; }
-  .head-right a{ color:#123; font-weight:700; text-decoration:none; }
-  .edu-badge{ background: #fff4d6; color:#8a5a00; padding:.18rem .5rem; border-radius:6px; font-size:.7rem; font-weight:800; border:1px solid #ffe0a3; }
-  .local-badge{ background: #dbeafe; color:#1e40af; padding:.18rem .5rem; border-radius:6px; font-size:.7rem; font-weight:800; border:1px solid #bfdbfe; }
-  main{ max-width: 1050px; margin:0 auto; padding:1rem; }
-  .dealer{ background: rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.10); border-radius:16px; padding:.9rem 1rem; margin-bottom:1rem; }
-  .dealer-title{ font-size:.8rem; letter-spacing:1.2px; text-transform:uppercase; color:#9fc4ae; margin-bottom:.5rem; }
-  .dealer-title .val{ color: var(--gold); font-weight:800; margin-left:.4rem; }
-  .hand{ display:flex; gap:6px; flex-wrap:wrap; min-height:78px; align-items:center; }
-  .hand-empty{ font-size:.78rem; color:#7fa891; font-style:italic; }
-  .card{ width:54px; height:76px; background:#fdfdfd; border-radius:8px; box-shadow: 0 4px 10px rgba(0,0,0,.4); display:flex; flex-direction:column; justify-content:space-between; padding:5px 6px; color:#14181b; font-weight:800; user-select:none; animation: dealIn .25s ease-out both; }
-  .card .r{ font-size:1rem; }
-  .card .s{ font-size:1.15rem; align-self:flex-end; }
-  .card.red{ color:#c62828; }
-  .card.back{ background: repeating-linear-gradient(45deg, #14532d 0 6px, #1e7a44 6px 12px); border:2px solid rgba(255,255,255,.85); }
-  @keyframes dealIn{ from{ transform: translateY(-18px) rotate(-6deg); opacity:0; } to{ transform:none; opacity:1; } }
-  .players{ display:grid; grid-template-columns: repeat(auto-fit, minmax(215px,1fr)); gap:.8rem; }
-  .player{ background: rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:.7rem .8rem; }
-  .player.me{ background: rgba(93,204,120,.08); }
-  .player.active{ border-color: var(--green); box-shadow: 0 0 0 2px rgba(93,204,120,.28); }
-  .p-head{ display:flex; justify-content:space-between; gap:.5rem; font-size:.85rem; margin-bottom:.5rem; }
-  .p-name{ font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .p-chips{ color: var(--gold); font-weight:700; }
-  .p-foot{ display:flex; justify-content:space-between; font-size:.76rem; margin-top:.5rem; color:#9fc4ae; }
-  .p-value{ font-weight:900; color:#fff; background: rgba(0,0,0,.35); padding:.1rem .5rem; border-radius:8px; }
-  .player .hand{ min-height:76px; }
-  .controls{ display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin:1.1rem 0; padding:.85rem; min-height:60px; background: rgba(0,0,0,.22); border-radius:14px; }
-  .controls .note{ font-size:.88rem; color:#b9d9c6; margin-right:.3rem; }
-  .log-wrap{ display:grid; gap:.6rem; }
-  .log{ background: rgba(0,0,0,.28); border-radius:12px; padding:.7rem .85rem; font-size:.83rem; line-height:1.5; max-height:170px; overflow-y:auto; color:#c8e6d5; }
-  .log div{ padding:.12rem 0; border-bottom:1px dashed rgba(255,255,255,.06); word-break:break-word; }
-  .chat-row{ display:flex; gap:.5rem; }
-  .chat-row input{ flex:1; }
-  .toast{ position:fixed; left:50%; bottom:22px; transform: translateX(-50%) translateY(20px); background:#0d3b24; color:#dff5e7; padding:.7rem 1.1rem; border-radius:12px; border:1px solid rgba(93,204,120,.45); opacity:0; pointer-events:none; transition:.25s; z-index:999; max-width:90vw; text-align:center; }
-  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
-  @media (max-width:520px){ .card{ width:46px; height:66px; } }
-</style>
-</head>
-<body>
+#include <bits/stdc++.h>
 
-<div id="lobby" class="lobby">
-  <div class="lobby-card">
-    <div class="edu-banner">
-      🧪 <b>Учебный проект</b>. Мультиплеер через <b>Trystero (Nostr)</b> — без аккаунтов и регистраций.
-      <br><small>Нет сети? Жми «Играть без сети».</small>
-    </div>
-    <h1>🃏 Blackjack <span>MemeZone</span></h1>
-    <label class="field">
-      <span>Твоё имя</span>
-      <input id="nameInput" maxlength="14" placeholder="Мемный Лорд" autocomplete="off">
-    </label>
-    <label class="field">
-      <span>Ботов за столом</span>
-      <select id="botCountInput">
-        <option value="0">0 — только люди</option>
-        <option value="1">1 бот</option>
-        <option value="2">2 бота</option>
-        <option value="3" selected>3 бота</option>
-        <option value="4">4 бота</option>
-        <option value="5">5 ботов</option>
-      </select>
-    </label>
-    <button id="localBtn" class="btn big local">🤖 Играть без сети</button>
-    <button id="createBtn" class="btn big">🎲 Создать стол (онлайн)</button>
-    <div class="divider"><span>или</span></div>
-    <label class="field">
-      <span>Код стола</span>
-      <input id="codeInput" maxlength="6" placeholder="ABCD" autocomplete="off"
-             style="text-transform:uppercase; letter-spacing:3px; font-family:ui-monospace,monospace;">
-    </label>
-    <button id="joinBtn" class="btn big ghost">🚪 Войти за стол</button>
-    <p id="lobbyStatus" class="status"></p>
-    <p class="hint">Хост создаёт стол и получает код. До 6 игроков.</p>
-  </div>
-</div>
+using namespace std;
 
-<div id="game" class="game" style="display:none">
-  <header>
-    <div class="logo">🃏 MemeZone Blackjack</div>
-    <div class="head-right">
-      <span class="edu-badge">🧪 Учебный проект</span>
-      <span id="localBadge" class="local-badge" style="display:none">💻 Локально</span>
-      <span class="room">Стол: <b id="roomCode">----</b></span>
-      <button id="copyBtn" class="btn small ghost">📋</button>
-      <span id="roundInfo" class="room"></span>
-      <a href="index.html">← На главную</a>
-    </div>
-  </header>
-  <main>
-    <section class="dealer">
-      <div class="dealer-title">Дилер <span id="dealerValue" class="val"></span></div>
-      <div class="hand" id="dealerHand"></div>
-    </section>
-    <div class="players" id="players"></div>
-    <section class="controls" id="controls"></section>
-    <section class="log-wrap">
-      <div class="log" id="log"></div>
-      <div class="chat-row">
-        <input id="chatInput" maxlength="120" placeholder="Написать за столом…">
-        <button id="chatSend" class="btn small">→</button>
-      </div>
-    </section>
-  </main>
-</div>
-<div id="toast" class="toast"></div>
+//#define int long double
+#define int long long
+#define INT_MAX 1e16
+#define Pi 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899
+const int mod = 1e9+7;
+const int MAXN = 2e5+10;
 
-<script type="module">
-const MIN_BET = 10;
-const START_CHIPS = 1000;
-const MAX_PLAYERS = 6;
-const APP_ID = 'mz-blackjack-nostr-v1';
-const SUITS = ['♠','♥','♦','♣'];
-const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const $ = id => document.getElementById(id);
-const rand = n => Math.floor(Math.random()*n);
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-let toastTimer;
-function toast(t){ const x=$('toast'); x.textContent=t; x.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>x.classList.remove('show'),3000); }
-function lobbyStatus(t){ $('lobbyStatus').textContent=t||''; }
-function genCode(){ let s=''; for(let i=0;i<4;i++) s+=CODE_CHARS[rand(CODE_CHARS.length)]; return s; }
 
-function newDeck(n){
-  const d=[];
-  for(let i=0;i<n;i++) for(const s of SUITS) for(const r of RANKS) d.push({r,s});
-  for(let i=d.length-1;i>0;i--){ const j=rand(i+1); [d[i],d[j]]=[d[j],d[i]]; }
-  return d;
-}
-function isRed(c){ return c.s==='♥'||c.s==='♦'; }
-function handValue(hand){
-  let total=0, aces=0;
-  for(const c of (hand||[])){
-    if(!c||c.r==='?') continue;
-    if(c.r==='A'){ total+=11; aces++; }
-    else if(['K','Q','J','10'].includes(c.r)) total+=10;
-    else total+=Number(c.r);
-  }
-  while(total>21&&aces>0){ total-=10; aces--; }
-  return { total, soft: aces>0 };
-}
-function isBlackjack(hand){ return hand.length===2 && handValue(hand).total===21; }
-function cardEl(card){
-  const el=document.createElement('div'); el.className='card';
-  if(!card||card.r==='?'){ el.classList.add('back'); return el; }
-  if(isRed(card)) el.classList.add('red');
-  const r=document.createElement('span'); r.className='r'; r.textContent=card.r;
-  const s=document.createElement('span'); s.className='s'; s.textContent=card.s;
-  el.appendChild(r); el.appendChild(s); return el;
+int sign(int x){
+    if (x>0)
+        return 1;
+    if (x==0)
+        return 0;
+    return -1;
 }
 
-const state = { mode:null, myId:null, code:null, name:'', room:null, isHost:false, hostId:null, hostGame:null, game:null, botCount:0, isLocal:false, sendState:null, sendJoin:null, sendAction:null, sendChat:null };
-function hgLog(text){ const hg=state.hostGame; if(!hg) return; hg.log.push(text); if(hg.log.length>80) hg.log.shift(); }
+struct Node{
+    int mn;
+    int mx;
+};
+struct Tree{
+    int tree[4*MAXN];
 
-function createHostGame(){ return { phase:'betting', round:0, deck:newDeck(6), dealer:{hand:[],reveal:false}, players:[], turn:-1, log:[], timer:null, botTimer:null }; }
-function drawCard(hg){ if(hg.deck.length<15) hg.deck=newDeck(6); return hg.deck.pop(); }
-function hostAddPlayer(id, name, isHost, isBot){
-  const hg=state.hostGame; if(!hg) return;
-  if(hg.players.find(p=>p.id===id)) return;
-  if(hg.players.length>=MAX_PLAYERS){ hgLog('Стол полон'); return; }
-  hg.players.push({ id, name:(name||'Игрок').slice(0,14), isHost:!!isHost, isBot:!!isBot, chips:START_CHIPS, bet:0, hand:[], status: hg.phase==='betting'?'betting':'waiting', doubled:false, result:null, payout:0, disconnected:false });
-  hgLog(`${(name||'Игрок')} присоединился`);
-}
-function publicState(){
-  const hg=state.hostGame;
-  const dealerHand=hg.dealer.hand.map((c,i)=> (i===0||hg.dealer.reveal)?c:{r:'?',s:'?'});
-  const openCards=hg.dealer.hand.filter((c,i)=> i===0||hg.dealer.reveal);
-  return {
-    phase:hg.phase, round:hg.round, turn:hg.turn, hostId:state.myId,
-    dealer:{ hand:dealerHand, reveal:hg.dealer.reveal, value: openCards.length?handValue(openCards).total:0 },
-    players: hg.players.map(p=>({ id:p.id, name:p.name, isHost:p.isHost, isBot:p.isBot, chips:p.chips, bet:p.bet, hand:p.hand, status:p.status, doubled:p.doubled, result:p.result, payout:p.payout })),
-    log: hg.log.slice(-14)
-  };
-}
-function broadcast(){
-  if(!state.isHost||!state.hostGame) return;
-  const pub=publicState();
-  try{ if(state.sendState) state.sendState(pub); }catch(e){}
-  render(pub);
-}
-function hgStartBetting(){
-  const hg=state.hostGame; if(!hg) return;
-  clearTimeout(hg.timer); clearTimeout(hg.botTimer);
-  hg.players=hg.players.filter(p=>!p.disconnected);
-  hg.phase='betting'; hg.round=(hg.round||0)+1;
-  hg.dealer={hand:[],reveal:false}; hg.turn=-1; hg.deck=newDeck(6);
-  hg.players.forEach(p=>{
-    p.hand=[]; p.bet=0; p.doubled=false; p.result=null; p.payout=0;
-    if(p.chips<MIN_BET){ p.chips+=500; hgLog(`🏦 ${p.name} получает 500 фишек`); }
-    p.status='betting';
-  });
-  hgLog(`── Раунд ${hg.round} ── Делайте ставки!`);
-  broadcast(); maybeBotBetting();
-}
-function maybeAutoDeal(){
-  const hg=state.hostGame; if(!hg||hg.phase!=='betting') return;
-  const waiting=hg.players.filter(p=>p.status==='betting');
-  const ready=hg.players.filter(p=>p.status==='ready');
-  if(waiting.length===0&&ready.length>0){
-    clearTimeout(hg.timer);
-    hg.timer=setTimeout(()=>{ if(state.hostGame&&state.hostGame.phase==='betting') hgDeal(); },900);
-  }
-}
-function hostBet(id, amount){
-  const hg=state.hostGame; if(!hg||hg.phase!=='betting') return;
-  const p=hg.players.find(pp=>pp.id===id); if(!p||p.status!=='betting') return;
-  amount=Math.floor(Number(amount)); if(!isFinite(amount)||amount<MIN_BET) return;
-  if(amount>p.chips) amount=p.chips; if(amount<MIN_BET) return;
-  p.bet=amount; p.chips-=amount; p.status='ready';
-  hgLog(`${p.isBot?'🤖 ':''}${p.name} ставит ${amount}`);
-  broadcast(); maybeAutoDeal();
-}
-function hostClearBet(id){
-  const hg=state.hostGame; if(!hg||hg.phase!=='betting') return;
-  const p=hg.players.find(pp=>pp.id===id); if(!p||p.status!=='ready') return;
-  p.chips+=p.bet; p.bet=0; p.status='betting'; broadcast();
-}
-function hostChat(id, text){
-  const hg=state.hostGame; if(!hg) return;
-  const p=hg.players.find(pp=>pp.id===id);
-  hgLog(`💬 ${p?p.name:'Гость'}: ${String(text).slice(0,120)}`); broadcast();
-}
-function maybeBotBetting(){
-  const hg=state.hostGame; if(!hg||hg.phase!=='betting') return;
-  const bots=hg.players.filter(p=>p.isBot&&p.status==='betting'); if(bots.length===0) return;
-  clearTimeout(hg.botTimer);
-  hg.botTimer=setTimeout(()=>{
-    if(!state.hostGame||state.hostGame.phase!=='betting') return;
-    hg.players.filter(p=>p.isBot&&p.status==='betting').forEach(bot=>{
-      if(!state.hostGame||state.hostGame.phase!=='betting') return;
-      const cur=state.hostGame.players.find(p=>p.id===bot.id);
-      if(cur&&cur.status==='betting'){
-        const opts=[10,25,50,100]; let amt=opts[rand(opts.length)];
-        if(amt>cur.chips) amt=cur.chips; if(amt<MIN_BET) amt=MIN_BET;
-        hostBet(cur.id, amt);
-      }
-    });
-  },700);
-}
-function maybeBotTurn(){
-  const hg=state.hostGame; if(!hg||hg.phase!=='playing'||hg.turn<0) return;
-  const p=hg.players[hg.turn]; if(!p||!p.isBot) return;
-  clearTimeout(hg.botTimer);
-  hg.botTimer=setTimeout(()=>{
-    if(!state.hostGame||state.hostGame.phase!=='playing') return;
-    const cur=state.hostGame.players[state.hostGame.turn];
-    if(!cur||!cur.isBot) return;
-    botDecide(cur);
-  },800);
-}
-function botDecide(p){
-  const v=handValue(p.hand);
-  if(p.hand.length===2&&p.chips>=p.bet&&(v.total===10||v.total===11)){ hgAction(p.id,'double'); return; }
-  if(v.total<17||(v.total===17&&v.soft)) hgAction(p.id,'hit'); else hgAction(p.id,'stand');
-}
-function hgDeal(){
-  const hg=state.hostGame; if(!hg||hg.phase!=='betting') return;
-  clearTimeout(hg.timer); clearTimeout(hg.botTimer);
-  const active=hg.players.filter(p=>p.status==='ready');
-  if(active.length===0){ hgStartBetting(); return; }
-  hg.players.forEach(p=>{ if(p.status==='betting') p.status='sitout'; });
-  hg.phase='dealing'; hg.dealer={hand:[],reveal:false}; hg.deck=newDeck(6);
-  if(!hg.round) hg.round=1;
-  active.forEach(p=>{ p.hand=[]; p.status='playing'; p.doubled=false; p.result=null; p.payout=0; });
-  for(let i=0;i<2;i++){ active.forEach(p=>p.hand.push(drawCard(hg))); hg.dealer.hand.push(drawCard(hg)); }
-  active.forEach(p=>{ if(isBlackjack(p.hand)) p.status='blackjack'; });
-  if(isBlackjack(hg.dealer.hand)){
-    hg.phase='dealer'; hg.dealer.reveal=true; hgLog('У дилера блэкджек!');
-    broadcast(); hg.timer=setTimeout(hgPayout,1400); return;
-  }
-  if(hg.players.filter(p=>p.status==='playing').length===0){ broadcast(); hgDealerPlay(); return; }
-  hg.phase='playing'; hg.turn=-1; broadcast(); hgAdvance();
-}
-function hgAdvance(){
-  const hg=state.hostGame; if(!hg) return;
-  let i=hg.turn+1;
-  while(i<hg.players.length&&hg.players[i].status!=='playing') i++;
-  while(i<hg.players.length&&hg.players[i].disconnected){
-    hg.players[i].status='stood'; hgLog(`${hg.players[i].name} отключился — авто-стоп`);
-    i++; while(i<hg.players.length&&hg.players[i].status!=='playing') i++;
-  }
-  if(i<hg.players.length){ hg.turn=i; broadcast(); maybeBotTurn(); }
-  else { hg.turn=-1; hgDealerPlay(); }
-}
-function hgAction(playerId, action){
-  const hg=state.hostGame; if(!hg||hg.phase!=='playing'||hg.turn<0) return;
-  const idx=hg.players.findIndex(p=>p.id===playerId); if(idx!==hg.turn) return;
-  const p=hg.players[idx]; if(!p||p.status!=='playing') return;
-  if(action==='hit'){
-    p.hand.push(drawCard(hg)); const v=handValue(p.hand);
-    if(v.total>21) p.status='bust'; else if(v.total===21) p.status='stood';
-  } else if(action==='stand'){ p.status='stood'; }
-  else if(action==='double'){
-    if(p.hand.length!==2||p.chips<p.bet) return;
-    p.chips-=p.bet; p.bet*=2; p.doubled=true;
-    p.hand.push(drawCard(hg));
-    p.status=handValue(p.hand).total>21?'bust':'stood';
-  } else return;
-  if(p.status==='bust') hgLog(`${p.isBot?'🤖 ':''}${p.name} — перебор`);
-  if(p.status==='stood') hgLog(`${p.isBot?'🤖 ':''}${p.name} — хватит`);
-  broadcast();
-  if(p.status!=='playing') hgAdvance(); else if(p.isBot) maybeBotTurn();
-}
-function hgDealerPlay(){
-  const hg=state.hostGame; if(!hg) return;
-  clearTimeout(hg.timer);
-  hg.phase='dealer'; hg.turn=-1; hg.dealer.reveal=true;
-  const anyAlive=hg.players.some(p=>p.hand.length&&p.status!=='bust');
-  if(!anyAlive){ broadcast(); hg.timer=setTimeout(hgPayout,700); return; }
-  broadcast();
-  const step=()=>{
-    if(!state.hostGame) return;
-    const hv=handValue(hg.dealer.hand).total;
-    if(hv<17){ hg.dealer.hand.push(drawCard(hg)); broadcast(); hg.timer=setTimeout(step,700); }
-    else hg.timer=setTimeout(hgPayout,700);
-  };
-  hg.timer=setTimeout(step,700);
-}
-function hgPayout(){
-  const hg=state.hostGame; if(!hg) return;
-  clearTimeout(hg.timer); clearTimeout(hg.botTimer);
-  const dv=handValue(hg.dealer.hand).total; const dBJ=isBlackjack(hg.dealer.hand);
-  hg.players.forEach(p=>{
-    if(p.disconnected){ p.chips+=p.bet; return; }
-    if(!p.hand||!p.hand.length) return;
-    if(['sitout','waiting','betting','ready','dealing'].includes(p.status)) return;
-    if(p.status==='bust'){ p.result='lose'; p.payout=0; p.status='done'; hgLog(`${p.isBot?'🤖 ':''}${p.name} — проигрыш ${p.bet}`); return; }
-    const pv=handValue(p.hand).total; const pBJ=isBlackjack(p.hand);
-    let payout=0, result='lose';
-    if(pBJ&&!dBJ){ result='blackjack'; payout=Math.floor(p.bet*2.5); }
-    else if(dBJ&&!pBJ){ result='lose'; payout=0; }
-    else if(pv>dv){ result='win'; payout=p.bet*2; }
-    else if(pv===dv){ result='push'; payout=p.bet; }
-    else { result='lose'; payout=0; }
-    p.result=result; p.payout=payout; p.chips+=payout; p.status='done';
-    if(result==='blackjack') hgLog(`${p.isBot?'🤖 ':''}${p.name} — БЛЭКДЖЕК! +${payout-p.bet}`);
-    else if(result==='win') hgLog(`${p.isBot?'🤖 ':''}${p.name} — выигрыш +${payout-p.bet}`);
-    else if(result==='push') hgLog(`${p.isBot?'🤖 ':''}${p.name} — ничья`);
-    else hgLog(`${p.isBot?'🤖 ':''}${p.name} — проигрыш ${p.bet}`);
-  });
-  hg.phase='payout'; hgLog('Раунд окончен.'); broadcast();
-}
-function hostRequestNext(){ const hg=state.hostGame; if(!hg||hg.phase!=='payout') return; hgStartBetting(); }
-
-let trysteroModule=null;
-async function loadTrystero(){
-  if(trysteroModule) return trysteroModule;
-  try { trysteroModule = await import('https://esm.run/trystero'); return trysteroModule; }
-  catch(e){ console.error('[Trystero] load failed:', e); return null; }
-}
-
-const RELAYS = [
-  'wss://relay.damus.io',
-  'wss://nos.lol',
-  'wss://relay.nostr.band',
-  'wss://nostr.wine',
-  'wss://relay.snort.social'
-];
-
-async function startHostOnline(name, botCount){
-  state.mode='host'; state.name=name; state.hostGame=createHostGame();
-  state.botCount=botCount||0; state.isHost=true; state.isLocal=false;
-  const code=genCode(); state.code=code;
-  lobbyStatus('Загружаю Trystero (Nostr)…');
-  const t=await loadTrystero();
-  if(!t){ lobbyStatus('Не удалось загрузить Trystero. Жми «Играть без сети».'); $('createBtn').disabled=false; $('localBtn').disabled=false; return; }
-  lobbyStatus('Подключаюсь к ретрансляторам Nostr…');
-  const config = { appId: APP_ID, relayUrls: RELAYS };
-  let room;
-  try{ room = t.joinRoom(config, code); }
-  catch(e){ console.error(e); lobbyStatus('Ошибка Trystero: '+e.message); $('createBtn').disabled=false; $('localBtn').disabled=false; return; }
-  state.room=room; state.myId=room.selfId;
-  const [sendState] = room.makeAction('state');
-  const [sendJoin, getJoin] = room.makeAction('join');
-  const [sendAction, getAction] = room.makeAction('action');
-  const [sendChat, getChat] = room.makeAction('chat');
-  state.sendState=sendState; state.sendJoin=sendJoin; state.sendAction=sendAction; state.sendChat=sendChat;
-  getJoin((data, peerId)=>{ hostAddPlayer(peerId, String(data.name||'Игрок').slice(0,14), false, false); broadcast(); });
-  getAction((data, peerId)=>{
-    if(!data||!data.type) return;
-    if(data.type==='bet') hostBet(peerId, Number(data.amount)||0);
-    else if(data.type==='clearbet') hostClearBet(peerId);
-    else if(data.type==='action') hgAction(peerId, String(data.action));
-    else if(data.type==='next') hostRequestNext();
-  });
-  getChat((data, peerId)=>hostChat(peerId, String(data.text||'')));
-  room.onPeerLeave(peerId=>{
-    const hg=state.hostGame; if(!hg) return;
-    const p=hg.players.find(pp=>pp.id===peerId);
-    if(p){ p.disconnected=true; hgLog(`${p.name} отключился`); if(hg.phase==='betting'||hg.phase==='payout') hg.players=hg.players.filter(pp=>!pp.disconnected); broadcast(); }
-  });
-  for(let i=0;i<state.botCount;i++) hostAddPlayer('bot-'+i, '🤖 Бот '+(i+1), false, true);
-  hostAddPlayer(state.myId, name, true, false);
-  showGame(); hgStartBetting();
-  toast('Стол создан. Код: '+code);
-}
-
-async function startClientOnline(code, name){
-  state.mode='client'; state.name=name; state.code=code; state.isHost=false; state.isLocal=false;
-  lobbyStatus('Загружаю Trystero (Nostr)…');
-  const t=await loadTrystero();
-  if(!t){ lobbyStatus('Trystero не загрузился.'); $('joinBtn').disabled=false; return; }
-  lobbyStatus('Подключаюсь к столу '+code+'…');
-  const config = { appId: APP_ID, relayUrls: RELAYS };
-  let room;
-  try{ room = t.joinRoom(config, code); }
-  catch(e){ console.error(e); lobbyStatus('Ошибка: '+e.message); $('joinBtn').disabled=false; return; }
-  state.room=room; state.myId=room.selfId;
-  const [sendState, getState] = room.makeAction('state');
-  const [sendJoin] = room.makeAction('join');
-  const [sendAction] = room.makeAction('action');
-  const [sendChat] = room.makeAction('chat');
-  state.sendState=sendState; state.sendJoin=sendJoin; state.sendAction=sendAction; state.sendChat=sendChat;
-  getState((data)=>{
-    if(data&&data.hostId){ state.hostId=data.hostId; state.isHost=(data.hostId===state.myId); }
-    render(data);
-  });
-  sendJoin({ name });
-  setTimeout(()=>{ if(!state.game){ lobbyStatus('Хост не отвечает. Проверь код.'); $('joinBtn').disabled=false; } },12000);
-  showGame(); lobbyStatus('');
-}
-
-function startLocal(name, botCount){
-  state.mode='host'; state.name=name; state.hostGame=createHostGame();
-  state.botCount=botCount||0; state.isHost=true; state.isLocal=true;
-  state.myId='local-host'; state.code='LOCAL';
-  for(let i=0;i<state.botCount;i++) hostAddPlayer('bot-'+i, '🤖 Бот '+(i+1), false, true);
-  hostAddPlayer(state.myId, name, true, false);
-  showGame(); hgStartBetting();
-  toast('💻 Локальная игра');
-}
-
-function doBet(a){ if(state.isHost) hostBet(state.myId,a); else if(state.sendAction&&state.hostId) state.sendAction({type:'bet',amount:a}, state.hostId); }
-function doClearBet(){ if(state.isHost) hostClearBet(state.myId); else if(state.sendAction&&state.hostId) state.sendAction({type:'clearbet'}, state.hostId); }
-function doAction(a){ if(state.isHost) hgAction(state.myId,a); else if(state.sendAction&&state.hostId) state.sendAction({type:'action',action:a}, state.hostId); }
-function doNext(){ if(state.isHost) hostRequestNext(); else if(state.sendAction&&state.hostId) state.sendAction({type:'next'}, state.hostId); }
-function sendChat(){ const i=$('chatInput'); const t=i.value.trim(); if(!t) return; i.value=''; if(state.isHost) hostChat(state.myId,t); else if(state.sendChat&&state.hostId) state.sendChat({text:t}, state.hostId); }
-
-function mkBtn(label, doWhat, val){
-  const b=document.createElement('button'); b.className='btn small'; b.textContent=label; b.dataset.do=doWhat;
-  if(val!==undefined&&val!=='') b.dataset.val=String(val); return b;
-}
-function resultText(p){
-  if(p.status!=='done') return '';
-  const net=p.payout-p.bet;
-  if(p.result==='blackjack') return '🃏 блэкджек +'+net;
-  if(p.result==='win') return '✅ выигрыш +'+net;
-  if(p.result==='push') return '🤝 ничья';
-  if(p.result==='lose') return '❌ проигрыш';
-  return '';
-}
-function renderControls(g){
-  const el=$('controls'); el.innerHTML='';
-  const me=g.players.find(p=>p.id===state.myId);
-  if(g.phase==='betting'){
-    if(!me){ el.innerHTML='<span class="note">Ты зритель.</span>'; return; }
-    if(me.status==='betting'){
-      const n=document.createElement('span'); n.className='note'; n.textContent='Ставка (мин. '+MIN_BET+'):'; el.appendChild(n);
-      [10,25,50,100,250,500].forEach(v=>{ const b=mkBtn(String(v),'bet',v); if(v>me.chips) b.disabled=true; el.appendChild(b); });
-      if(me.chips>=MIN_BET) el.appendChild(mkBtn('Ва-банк ('+me.chips+')','bet',me.chips));
-      return;
+    void build(int v, int tl,int tr, vector<int> &a){
+        if (tl == tr){
+            tree[v]=a[tl];
+            return;
+        }
+        int tm = (tl+tr)/2;
+        build(2*v+1,tl,tm,a);
+        build(2*v+2,tm+1,tr,a);
+        tree[v]=tree[2*v+1]+tree[2*v+2];
     }
-    if(me.status==='ready'){
-      const n=document.createElement('span'); n.className='note'; n.textContent='Ставка '+me.bet+' принята.'; el.appendChild(n);
-      el.appendChild(mkBtn('Отменить','clear')); return;
+
+    void update(int v, int tl, int tr, int i, int x){
+        if (tl == tr and tl == i){
+            tree[v]+=x;
+            return;
+        }
+        if (i < tl or tr < i)
+            return ;
+        int tm = (tl+tr)/2;
+        update(2*v+1, tl, tm,i,x);
+        update(2*v+2, tm+1, tr, i, x);
+        tree[v]=tree[2*v+1]+tree[2*v+2];
     }
-    el.innerHTML='<span class="note">Ты пасуешь.</span>'; return;
-  }
-  if(g.phase==='playing'){
-    const tp=g.turn>=0?g.players[g.turn]:null;
-    if(tp&&tp.id===state.myId){
-      const n=document.createElement('span'); n.className='note'; n.textContent='Твой ход:'; el.appendChild(n);
-      el.appendChild(mkBtn('Ещё','action','hit'));
-      el.appendChild(mkBtn('Хватит','action','stand'));
-      if(tp.hand.length===2&&tp.chips>=tp.bet) el.appendChild(mkBtn('Удвоить','action','double'));
-    } else {
-      const n=document.createElement('span'); n.className='note'; n.textContent=tp?'Ход: '+tp.name:'…'; el.appendChild(n);
+
+    int get(int v, int tl, int tr, int l, int r){
+        if (r < tl or tr < l)
+            return 0;
+        if (l <= tl and tr <= r)
+            return tree[v];
+        int tm = (tl+tr)/2;
+        return get(2*v+1,tl, tm,l,r) + get(2*v+2, tm+1, tr, l, r);
     }
-    return;
-  }
-  if(g.phase==='dealer'){ el.innerHTML='<span class="note">Дилер играет…</span>'; return; }
-  if(g.phase==='payout'){
-    const n=document.createElement('span'); n.className='note'; n.textContent='Раунд окончен.'; el.appendChild(n);
-    el.appendChild(mkBtn('▶ Новый раунд','next')); return;
-  }
-  el.innerHTML='<span class="note">Ждём…</span>';
+
+};
+
+struct Dsu{
+    int p[MAXN+10];
+    //set<int> s;
+
+    void build(int n, int st = 1){
+        for (int i = st; i <= n; i++){
+            p[i]=i;
+            //s.insert(i);
+        }
+    }
+
+    int Find(int v){
+        if (v == p[v])
+            return v;
+        return p[v]=Find(p[v]);
+    }
+
+    void join(int a, int b){
+        a = Find(a);
+        b = Find(b);
+        if (a!=b){
+            p[a]=b;
+            //s.erase(a);
+        }
+    }
+};
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+
+struct point{
+    int x, y;
+
+    point(int cx = 0, int cy = 0){
+        x=cx;
+        y=cy;
+    }
+
+    point operator+ (point tmp){
+        point res;
+        res.x = x + tmp.x;
+        res.y = y + tmp.y;
+        return res;
+    }
+
+    point operator- (point tmp){
+        point res;
+        res.x = x - tmp.x;
+        res.y = y - tmp.y;
+        return res;
+    }
+
+    int operator* (point tmp){
+        return x*tmp.x + y*tmp.y;
+    }
+
+    int operator^ (point tmp){
+        return x*tmp.y - y*tmp.x;
+    }
+
+    long double len(){
+        return sqrt(x*x+y*y);
+    }
+    vector<int> koords(point tmp){
+        return {y, -x, x*tmp.y-y*tmp.x};
+    }
+    void normalize(){
+        int l = len();
+        x/=l;
+        y/=l;
+    }
+
+    long double alpha(){
+        long double alpha = atan2(y, x);
+        if (alpha<0){
+            alpha+=2*Pi;
+        }
+        if (alpha>Pi){
+            alpha-=Pi;
+        }
+        return alpha;
+    }
+};
+int sum2(vector<point> &points){
+    vector<int>x, y;
+    for (point p: points){
+        x.push_back(p.x);
+        y.push_back(p.y);
+    }
+    int sm = 0;
+    int32_t n = x.size();
+    for (int32_t i = 0; i < n; i++){
+        sm+=x[(i)%n]*y[(i+1)%n];
+    }
+    for (int32_t i = 0; i < n; i++){
+        sm-=x[(i+1)%n]*y[(i)%n];
+    }
+    sm=abs(sm);
+    return sm;
 }
-function render(g){
-  if(!g) return; state.game=g;
-  $('roomCode').textContent=state.code||'----';
-  $('roundInfo').textContent=g.round?'Раунд '+g.round:'';
-  const dh=$('dealerHand'); dh.innerHTML='';
-  if(!g.dealer.hand.length) dh.innerHTML='<span class="hand-empty">Ждём…</span>';
-  else g.dealer.hand.forEach(c=>dh.appendChild(cardEl(c)));
-  $('dealerValue').textContent=g.dealer.hand.length?g.dealer.value:'';
-  const w=$('players'); w.innerHTML='';
-  g.players.forEach(p=>{
-    const div=document.createElement('div'); div.className='player';
-    if(p.id===state.myId) div.classList.add('me');
-    if(g.turn>=0&&g.players[g.turn]&&g.players[g.turn].id===p.id) div.classList.add('active');
-    const head=document.createElement('div'); head.className='p-head';
-    head.innerHTML='<span class="p-name">'+escapeHtml(p.name)+(p.id===state.myId?' (ты)':'')+(p.isHost?' 👑':'')+'</span><span class="p-chips">🪙 '+p.chips+'</span>';
-    div.appendChild(head);
-    const hand=document.createElement('div'); hand.className='hand';
-    if(!p.hand.length) hand.innerHTML='<span class="hand-empty">—</span>';
-    p.hand.forEach(c=>hand.appendChild(cardEl(c))); div.appendChild(hand);
-    const foot=document.createElement('div'); foot.className='p-foot';
-    const v=p.hand.length?handValue(p.hand).total:null;
-    let s='';
-    if(p.status==='betting') s='делает ставку';
-    else if(p.status==='ready') s='ставка '+p.bet;
-    else if(p.status==='playing') s='в игре';
-    else if(p.status==='bust') s='перебор';
-    else if(p.status==='blackjack') s='блэкджек!';
-    else if(p.status==='stood') s='хватит';
-    else if(p.status==='sitout') s='пас';
-    else if(p.status==='done') s=resultText(p);
-    else if(p.status==='waiting') s='ждёт';
-    if(p.doubled) s+=' ×2';
-    foot.innerHTML='<span>'+escapeHtml(s)+'</span><span class="p-value">'+(v!==null?v:'')+'</span>';
-    div.appendChild(foot); w.appendChild(div);
-  });
-  renderControls(g);
-  const log=$('log'); log.innerHTML=g.log.map(l=>'<div>'+escapeHtml(l)+'</div>').join(''); log.scrollTop=log.scrollHeight;
-}
-function showGame(){
-  $('lobby').style.display='none'; $('game').style.display='';
-  $('roomCode').textContent=state.code||'----';
-  const isLocal=state.isLocal||state.code==='LOCAL';
-  $('copyBtn').style.display=isLocal?'none':'';
-  $('localBadge').style.display=isLocal?'':'none';
+/*
+int pow(int a, int p, int mod = INT_MAX){
+    if (p == 1)
+        return a;
+    if (!p)
+        return 1;
+    if (p%2){
+        return a*pow(a,p-1, mod)%mod;
+    }
+    return pow(a,p/2,mod)*pow(a,p/2,mod)%mod;
+}*/
+int gcd(int a, int b){
+    if (!b) return a;
+    return gcd(b, a % b);
 }
 
-function init(){
-  try{ const s=localStorage.getItem('mzbj-name'); if(s) $('nameInput').value=s; }catch(e){}
-  try{ const r=new URLSearchParams(location.search).get('room'); if(r) $('codeInput').value=r.toUpperCase(); }catch(e){}
-  function readName(){ return ($('nameInput').value||'').trim().slice(0,14)||'Игрок'; }
-  function readBots(){ return Math.max(0, Math.min(5, parseInt($('botCountInput').value,10)||0)); }
-  $('localBtn').addEventListener('click', ()=>{
-    const n=readName();
-    try{localStorage.setItem('mzbj-name',n);}catch(e){}
-    $('localBtn').disabled=true; $('createBtn').disabled=true;
-    startLocal(n, readBots());
-  });
-  $('createBtn').addEventListener('click', async()=>{
-    const n=readName();
-    try{localStorage.setItem('mzbj-name',n);}catch(e){}
-    $('createBtn').disabled=true; $('localBtn').disabled=true;
-    lobbyStatus('Создаю стол…');
-    await startHostOnline(n, readBots());
-  });
-  $('joinBtn').addEventListener('click', async()=>{
-    const n=readName();
-    const c=($('codeInput').value||'').trim().toUpperCase();
-    if(!/^[A-Z0-9]{4}$/.test(c)){ lobbyStatus('Код — 4 символа.'); return; }
-    try{localStorage.setItem('mzbj-name',n);}catch(e){}
-    $('joinBtn').disabled=true;
-    await startClientOnline(c, n);
-  });
-  $('codeInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('joinBtn').click(); });
-  $('copyBtn').addEventListener('click', async()=>{
-    const url=location.origin+location.pathname+'?room='+(state.code||'');
-    try{ await navigator.clipboard.writeText(url); toast('Ссылка скопирована'); }
-    catch(e){ prompt('Скопируй:', url); }
-  });
-  $('chatSend').addEventListener('click', sendChat);
-  $('chatInput').addEventListener('keydown', e=>{ if(e.key==='Enter') sendChat(); });
-  $('controls').addEventListener('click', e=>{
-    const b=e.target.closest('button[data-do]'); if(!b) return;
-    const w=b.dataset.do;
-    if(w==='bet') doBet(Number(b.dataset.val)||0);
-    else if(w==='clear') doClearBet();
-    else if(w==='action') doAction(b.dataset.val);
-    else if(w==='next') doNext();
-  });
+#include <bits/stdc++.h>
+
+using namespace std;
+
+//#define int long double
+#define int long long
+#define INT_MAX 1e16
+#define Pi 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899
+
+int bisect_left(vector<int> &a, int x){
+    int l = -1;
+    int r = a.size();
+    while (r - l > 1){
+        int m = (r+l)/2;
+        if (a[m]>=x){
+            r = m;
+        }
+        else{
+            l = m;
+        }
+    }
+    return r;
 }
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
-</script>
-</body>
-</html>
+
+int bisect_right(vector<int> &a, int x){
+    int l = -1;
+    int r = a.size();
+    while (r - l > 1){
+        int m = (r+l)/2;
+        if (a[m]<=x){
+            l = m;
+        }
+        else{
+            r = m;
+        }
+    }
+    return l;
+}
+
+int pow(int a, int p, int mod = INT_MAX){
+    if (p == 1)
+        return a;
+    if (!p)
+        return 1;
+    if (p%2){
+        return a*pow(a,p-1, mod)%mod;
+    }
+    return pow(a,p/2,mod)*pow(a,p/2,mod)%mod;
+}
+
+int sum(vector<int> &v){
+    int sm = 0;
+    for (int i: v){
+        sm+=i;
+    }
+    return sm;
+}
+
+int min(vector<int> &v){
+    int mn = INT_MAX;
+    for (int i: v){
+        mn = min(i,mn);
+    }
+    return mn;
+}
+
+int lg10(int x){
+    if (x)
+        return 1 + lg10(x/10);
+    return 0;
+}
+
+int f(vector<vector<int>> &c, vector<vector<int>>&p, int x){
+    int otw = 0;
+    for (int i = 0; i < c.size(); i++){
+        int sm = INT_MAX;
+        for (int j = 0; j < c[i].size(); j++){
+            if (p[i][j]>=x){
+                sm = min(sm, c[i][j]);
+            }
+        }
+        otw+=sm;
+    }
+    return otw;
+}
+
+int max(vector<int>& v){
+    int mx = INT_MIN;
+    for (int i: v){
+        mx = max(mx, i);
+    }
+    return mx;
+}
+
+int gcd_diof(int a, int b,int &x,int &y){
+    if (!b){
+        x=1;
+        y=0;
+        return a;
+    }
+    int x1,y1;
+    int d = gcd_diof(b, a%b, x1, y1);
+    x = y1;
+    y = x1 - a/b*y1;
+    return d;
+}
+
+int32_t main(){
+    int n, m, S, T;
+    cin >> n >> m >> S >> T;
+    vector<vector<pair<int,int>>> sp(n+1);
+    for (int i = 0; i < m; i++){
+        int a, b, w;
+        cin >> a >> b >> w;
+        sp[a].push_back({b, w});
+        sp[b].push_back({a, w});
+    }
+    set<pair<int, int>> s;
+    vector<int> us(n+1), dist(n+1, INT_MAX), p(n+1,-1);
+    dist[S]=0;
+    us[S]=1;
+    s.insert({0,S});
+    while (!s.empty()){
+        pair<int,int> para = *s.begin();
+        int v, ln;
+        ln = para.first, v= para.second;
+        us[v]=1;
+        s.erase(para);
+        for (pair<int,int> to: sp[v]){
+            if (us[to.first]){
+                continue;
+            }
+            if (ln + to.second < dist[to.first]){
+                s.erase({dist[to.first], to.first});
+                dist[to.first]=ln+to.second;
+                p[to.first]=v;
+                s.insert({dist[to.first],to.first});
+            }
+        }
+    }
+    if (dist[T]==INT_MAX){
+        cout << -1;
+        return 0;
+    }
+    cout << dist[T] << " ";
+    vector<int> otw;
+    int ind = T;
+    while (ind != -1){
+        otw.push_back(ind);
+        ind=p[ind];
+    }
+    cout << otw.size() << endl;
+    reverse(otw.begin(),otw.end());
+    for (int i: otw){
+        cout << i << " ";
+    }
+
+}
