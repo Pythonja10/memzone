@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MemeZone Blackjack — многопользовательский блэкджек</title>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
   :root{
     --green:        hsl(125, 55%, 62%);
@@ -17,7 +16,6 @@
     margin:0; min-height:100vh; color:#eaf7ef;
     font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
     background: radial-gradient(ellipse at 50% -20%, #1c6b41 0%, #0d3521 55%, #061a10 100%) fixed;
-    -webkit-font-smoothing: antialiased;
   }
   .edu-banner{
     background: rgba(255,200,50,.10); border: 1px solid rgba(255,200,50,.35);
@@ -70,29 +68,15 @@
   .head-right{ display:flex; align-items:center; gap:.55rem; flex-wrap:wrap; font-size:.82rem; }
   .head-right .room b{ color: var(--green-darker); font-family: ui-monospace, monospace; }
   .head-right a{ color:#123; font-weight:700; text-decoration:none; }
-  .edu-badge{
-    background: #fff4d6; color:#8a5a00; padding:.18rem .5rem;
-    border-radius:6px; font-size:.7rem; font-weight:800; border:1px solid #ffe0a3;
-  }
-  .local-badge{
-    background: #dbeafe; color:#1e40af; padding:.18rem .5rem;
-    border-radius:6px; font-size:.7rem; font-weight:800; border:1px solid #bfdbfe;
-  }
+  .edu-badge{ background: #fff4d6; color:#8a5a00; padding:.18rem .5rem; border-radius:6px; font-size:.7rem; font-weight:800; border:1px solid #ffe0a3; }
+  .local-badge{ background: #dbeafe; color:#1e40af; padding:.18rem .5rem; border-radius:6px; font-size:.7rem; font-weight:800; border:1px solid #bfdbfe; }
   main{ max-width: 1050px; margin:0 auto; padding:1rem; }
-  .dealer{
-    background: rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.10);
-    border-radius:16px; padding:.9rem 1rem; margin-bottom:1rem;
-  }
+  .dealer{ background: rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.10); border-radius:16px; padding:.9rem 1rem; margin-bottom:1rem; }
   .dealer-title{ font-size:.8rem; letter-spacing:1.2px; text-transform:uppercase; color:#9fc4ae; margin-bottom:.5rem; }
   .dealer-title .val{ color: var(--gold); font-weight:800; margin-left:.4rem; }
   .hand{ display:flex; gap:6px; flex-wrap:wrap; min-height:78px; align-items:center; }
   .hand-empty{ font-size:.78rem; color:#7fa891; font-style:italic; }
-  .card{
-    width:54px; height:76px; background:#fdfdfd; border-radius:8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,.4); display:flex; flex-direction:column;
-    justify-content:space-between; padding:5px 6px; color:#14181b; font-weight:800;
-    user-select:none; animation: dealIn .25s ease-out both;
-  }
+  .card{ width:54px; height:76px; background:#fdfdfd; border-radius:8px; box-shadow: 0 4px 10px rgba(0,0,0,.4); display:flex; flex-direction:column; justify-content:space-between; padding:5px 6px; color:#14181b; font-weight:800; user-select:none; animation: dealIn .25s ease-out both; }
   .card .r{ font-size:1rem; }
   .card .s{ font-size:1.15rem; align-self:flex-end; }
   .card.red{ color:#c62828; }
@@ -125,12 +109,10 @@
 <div id="lobby" class="lobby">
   <div class="lobby-card">
     <div class="edu-banner">
-      🧪 <b>Учебный проект</b> — не для реальных ставок.
-      Мультиплеер через публичный PeerJS: нужен доступ к <code>0.peerjs.com</code>.
-      <br><small>Нет сети? Жми «Играть без сети» — играй с ботами и дилером.</small>
+      🧪 <b>Учебный проект</b>. Мультиплеер через <b>Trystero (MQTT)</b>.
+      <br><small>Нет сети? Жми «Играть без сети» — боты и дилер.</small>
     </div>
     <h1>🃏 Blackjack <span>MemeZone</span></h1>
-    <p class="lead">Многопользовательский блэкджек в браузере.</p>
     <label class="field">
       <span>Твоё имя</span>
       <input id="nameInput" maxlength="14" placeholder="Мемный Лорд" autocomplete="off">
@@ -146,7 +128,7 @@
         <option value="5">5 ботов</option>
       </select>
     </label>
-    <button id="localBtn" class="btn big local">🤖 Играть без сети (боты + дилер)</button>
+    <button id="localBtn" class="btn big local">🤖 Играть без сети</button>
     <button id="createBtn" class="btn big">🎲 Создать стол (онлайн)</button>
     <div class="divider"><span>или</span></div>
     <label class="field">
@@ -156,7 +138,6 @@
     </label>
     <button id="joinBtn" class="btn big ghost">🚪 Войти за стол</button>
     <p id="lobbyStatus" class="status"></p>
-    <p class="hint">Хост создаёт стол и получает код. До 6 игроков. Боты играют сами.</p>
   </div>
 </div>
 
@@ -190,19 +171,16 @@
 </div>
 <div id="toast" class="toast"></div>
 
-<script>
-(function(){
-'use strict';
+<script type="module">
 const MIN_BET = 10;
 const START_CHIPS = 1000;
 const MAX_PLAYERS = 6;
-const PEER_PREFIX = 'mzbj-';
+const APP_ID = 'mz-blackjack-mqtt-v1';
 const SUITS = ['♠','♥','♦','♣'];
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-
 const $ = id => document.getElementById(id);
-const rand = n => Math.floor(Math.random() * n);
+const rand = n => Math.floor(Math.random()*n);
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 let toastTimer;
 function toast(t){ const x=$('toast'); x.textContent=t; x.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>x.classList.remove('show'),3000); }
@@ -237,10 +215,7 @@ function cardEl(card){
   el.appendChild(r); el.appendChild(s); return el;
 }
 
-const state = {
-  mode: null, myId: null, code: null, name: '',
-  peer: null, conns: [], conn: null, hostGame: null, game: null, botCount: 0, isLocal: false
-};
+const state = { mode:null, myId:null, code:null, name:'', room:null, isHost:false, hostId:null, hostGame:null, game:null, botCount:0, isLocal:false };
 function hgLog(text){ const hg=state.hostGame; if(!hg) return; hg.log.push(text); if(hg.log.length>80) hg.log.shift(); }
 
 function createHostGame(){ return { phase:'betting', round:0, deck:newDeck(6), dealer:{hand:[],reveal:false}, players:[], turn:-1, log:[], timer:null, botTimer:null }; }
@@ -257,16 +232,16 @@ function publicState(){
   const dealerHand=hg.dealer.hand.map((c,i)=> (i===0||hg.dealer.reveal)?c:{r:'?',s:'?'});
   const openCards=hg.dealer.hand.filter((c,i)=> i===0||hg.dealer.reveal);
   return {
-    phase:hg.phase, round:hg.round, turn:hg.turn,
+    phase:hg.phase, round:hg.round, turn:hg.turn, hostId:state.myId,
     dealer:{ hand:dealerHand, reveal:hg.dealer.reveal, value: openCards.length?handValue(openCards).total:0 },
     players: hg.players.map(p=>({ id:p.id, name:p.name, isHost:p.isHost, isBot:p.isBot, chips:p.chips, bet:p.bet, hand:p.hand, status:p.status, doubled:p.doubled, result:p.result, payout:p.payout })),
     log: hg.log.slice(-14)
   };
 }
 function broadcast(){
-  if(state.mode!=='host'||!state.hostGame) return;
+  if(!state.isHost||!state.hostGame) return;
   const pub=publicState();
-  state.conns.forEach(c=>{ try{ c.send({type:'state',state:pub}); }catch(e){} });
+  try{ if(state.sendState) state.sendState(pub); }catch(e){}
   render(pub);
 }
 function hgStartBetting(){
@@ -433,112 +408,98 @@ function hgPayout(){
 }
 function hostRequestNext(){ const hg=state.hostGame; if(!hg||hg.phase!=='payout') return; hgStartBetting(); }
 
-function handleHostData(conn, msg){
-  if(!msg||!msg.type||!state.hostGame) return;
-  if(msg.type==='hello'){ hostAddPlayer(conn.peer, String(msg.name||'Игрок').slice(0,14), false, false); try{ conn.send({type:'welcome',hostId:state.myId,code:state.code}); }catch(e){} broadcast(); }
-  else if(msg.type==='bet') hostBet(conn.peer, Number(msg.amount)||0);
-  else if(msg.type==='clearbet') hostClearBet(conn.peer);
-  else if(msg.type==='action') hgAction(conn.peer, String(msg.action));
-  else if(msg.type==='chat') hostChat(conn.peer, String(msg.text||''));
-  else if(msg.type==='next') hostRequestNext();
+let trysteroModule=null;
+async function loadTrystero(){
+  if(trysteroModule) return trysteroModule;
+  try { trysteroModule = await import('https://esm.run/trystero/mqtt'); return trysteroModule; }
+  catch(e){ console.error('[Trystero] load failed:', e); return null; }
 }
 
-function startHost(name, botCount, localOnly){
+const RELAYS = [
+  'wss://mqtt.eclipseprojects.io/mqtt',
+  'wss://broker.hivemq.com:8884/mqtt',
+  'wss://broker.emqx.io:8084/mqtt',
+  'wss://test.mosquitto.org:8081/mqtt'
+];
+
+async function startHostOnline(name, botCount){
   state.mode='host'; state.name=name; state.hostGame=createHostGame();
-  state.botCount=botCount||0; state.conns=[]; state.isLocal=!!localOnly;
-
-  if(localOnly){
-    state.myId='local-host'; state.code='LOCAL';
-    for(let i=0;i<state.botCount;i++) hostAddPlayer('bot-'+i, '🤖 Бот '+(i+1), false, true);
-    hostAddPlayer(state.myId, name, true, false);
-    showGame(); hgStartBetting();
-    toast('💻 Локальная игра: без сети, только боты и дилер');
-    return;
-  }
-
-  if(typeof Peer==='undefined'){
-    lobbyStatus('PeerJS не загрузился. Жми «Играть без сети».');
-    $('createBtn').disabled=false;
-    return;
-  }
-  let tries=0; attempt();
-  function attempt(){
-    tries++;
-    lobbyStatus('Подключаюсь… попытка '+tries);
-    const code=genCode(); let opened=false; let peer;
-    try{ peer=new Peer(PEER_PREFIX+code,{debug:1, config:{iceServers:[{urls:'stun:stun.l.google.com:19302'}]}}); }
-    catch(e){ lobbyStatus('Ошибка: '+e.message); $('createBtn').disabled=false; return; }
-    state.peer=peer;
-    const timer=setTimeout(()=>{
-      if(opened) return;
-      try{peer.destroy();}catch(e){}
-      fallbackToLocal('Сигнальный сервер не ответил за 10 секунд.');
-    },10000);
-    peer.on('open', id=>{
-      if(opened) return; opened=true; clearTimeout(timer);
-      state.myId=id; state.code=code;
-      for(let i=0;i<state.botCount;i++) hostAddPlayer('bot-'+i, '🤖 Бот '+(i+1), false, true);
-      hostAddPlayer(id, name, true, false);
-      showGame(); hgStartBetting();
-    });
-    peer.on('error', err=>{
-      const type=err&&err.type; clearTimeout(timer);
-      if(opened){ console.warn('[host] post-open error:', type, err); return; }
-      if(type==='unavailable-id'&&tries<6){ try{peer.destroy();}catch(e){} attempt(); return; }
-      try{peer.destroy();}catch(e){}
-      fallbackToLocal('PeerJS: '+(type||(err&&err.message)||'unknown'));
-    });
-    peer.on('connection', conn=>{
-      state.conns.push(conn);
-      conn.on('data', data=>handleHostData(conn, data));
-      conn.on('close', ()=>{
-        state.conns=state.conns.filter(c=>c!==conn);
-        const hg=state.hostGame; if(!hg) return;
-        const p=hg.players.find(pp=>pp.id===conn.peer);
-        if(p){ p.disconnected=true; hgLog(`${p.name} отключился`); if(hg.phase==='betting'||hg.phase==='payout') hg.players=hg.players.filter(pp=>!pp.disconnected); broadcast(); }
-      });
-    });
-  }
-  function fallbackToLocal(reason){
-    console.warn('[MemeZone] Fallback to local:', reason);
-    lobbyStatus(''); toast('⚠️ '+reason+' Играем локально с ботами.');
-    setTimeout(()=>startHost(name, Math.max(botCount,0), true), 400);
-  }
+  state.botCount=botCount||0; state.isHost=true; state.isLocal=false;
+  const code=genCode(); state.code=code;
+  lobbyStatus('Загружаю Trystero…');
+  const t=await loadTrystero();
+  if(!t){ lobbyStatus('Не удалось загрузить Trystero. Жми «Играть без сети».'); $('createBtn').disabled=false; $('localBtn').disabled=false; return; }
+  lobbyStatus('Подключаюсь к MQTT-брокерам…');
+  const config = { appId: APP_ID, relayUrls: RELAYS, relayRedundancy: 4 };
+  let room;
+  try{ room = t.joinRoom(config, code); }
+  catch(e){ console.error(e); lobbyStatus('Ошибка Trystero: '+e.message); $('createBtn').disabled=false; $('localBtn').disabled=false; return; }
+  state.room=room; state.myId=room.selfId;
+  const [sendState] = room.makeAction('state');
+  const [sendJoin, getJoin] = room.makeAction('join');
+  const [sendAction, getAction] = room.makeAction('action');
+  const [sendChat, getChat] = room.makeAction('chat');
+  state.sendState=sendState; state.sendJoin=sendJoin; state.sendAction=sendAction; state.sendChat=sendChat;
+  getJoin((data, peerId)=>{ hostAddPlayer(peerId, String(data.name||'Игрок').slice(0,14), false, false); broadcast(); });
+  getAction((data, peerId)=>{
+    if(!data||!data.type) return;
+    if(data.type==='bet') hostBet(peerId, Number(data.amount)||0);
+    else if(data.type==='clearbet') hostClearBet(peerId);
+    else if(data.type==='action') hgAction(peerId, String(data.action));
+    else if(data.type==='next') hostRequestNext();
+  });
+  getChat((data, peerId)=>hostChat(peerId, String(data.text||'')));
+  room.onPeerLeave(peerId=>{
+    const hg=state.hostGame; if(!hg) return;
+    const p=hg.players.find(pp=>pp.id===peerId);
+    if(p){ p.disconnected=true; hgLog(`${p.name} отключился`); if(hg.phase==='betting'||hg.phase==='payout') hg.players=hg.players.filter(pp=>!pp.disconnected); broadcast(); }
+  });
+  for(let i=0;i<state.botCount;i++) hostAddPlayer('bot-'+i, '🤖 Бот '+(i+1), false, true);
+  hostAddPlayer(state.myId, name, true, false);
+  showGame(); hgStartBetting();
+  toast('Стол создан. Код: '+code);
 }
 
-function startClient(code, name){
-  if(typeof Peer==='undefined'){ lobbyStatus('PeerJS не загрузился.'); $('joinBtn').disabled=false; return; }
-  state.mode='client'; state.name=name; state.code=code; state.isLocal=false;
+async function startClientOnline(code, name){
+  state.mode='client'; state.name=name; state.code=code; state.isHost=false; state.isLocal=false;
+  lobbyStatus('Загружаю Trystero…');
+  const t=await loadTrystero();
+  if(!t){ lobbyStatus('Trystero не загрузился.'); $('joinBtn').disabled=false; return; }
   lobbyStatus('Подключаюсь к столу '+code+'…');
-  let peer;
-  try{ peer=new Peer({debug:1, config:{iceServers:[{urls:'stun:stun.l.google.com:19302'}]}}); }
-  catch(e){ lobbyStatus('Ошибка: '+e.message); $('joinBtn').disabled=false; return; }
-  state.peer=peer;
-  const timer=setTimeout(()=>{ lobbyStatus('Сервер не отвечает. Используй «Играть без сети» у хоста.'); try{peer.destroy();}catch(e){} $('joinBtn').disabled=false; },12000);
-  peer.on('open', id=>{
-    clearTimeout(timer); state.myId=id;
-    const conn=peer.connect(PEER_PREFIX+code,{reliable:true}); state.conn=conn;
-    conn.on('open', ()=>{ conn.send({type:'hello',name}); showGame(); lobbyStatus(''); });
-    conn.on('data', msg=>{
-      if(!msg||!msg.type) return;
-      if(msg.type==='state') render(msg.state);
-      else if(msg.type==='welcome'){ state.code=msg.code; $('roomCode').textContent=msg.code; }
-    });
-    conn.on('close', ()=>toast('Соединение потеряно'));
+  const config = { appId: APP_ID, relayUrls: RELAYS, relayRedundancy: 4 };
+  let room;
+  try{ room = t.joinRoom(config, code); }
+  catch(e){ console.error(e); lobbyStatus('Ошибка: '+e.message); $('joinBtn').disabled=false; return; }
+  state.room=room; state.myId=room.selfId;
+  const [sendState, getState] = room.makeAction('state');
+  const [sendJoin] = room.makeAction('join');
+  const [sendAction] = room.makeAction('action');
+  const [sendChat] = room.makeAction('chat');
+  state.sendState=sendState; state.sendJoin=sendJoin; state.sendAction=sendAction; state.sendChat=sendChat;
+  getState((data)=>{
+    if(data&&data.hostId){ state.hostId=data.hostId; state.isHost=(data.hostId===state.myId); }
+    render(data);
   });
-  peer.on('error', err=>{
-    const type=err&&err.type; clearTimeout(timer);
-    if(type==='peer-unavailable') lobbyStatus('Стол не найден.');
-    else lobbyStatus('Ошибка: '+(type||(err&&err.message)||'unknown'));
-    try{peer.destroy();}catch(e){} state.peer=null; $('joinBtn').disabled=false;
-  });
+  sendJoin({ name });
+  setTimeout(()=>{ if(!state.game){ lobbyStatus('Хост не отвечает. Проверь код.'); $('joinBtn').disabled=false; } },12000);
+  showGame(); lobbyStatus('');
 }
 
-function doBet(a){ if(state.mode==='host') hostBet(state.myId,a); else if(state.conn&&state.conn.open) state.conn.send({type:'bet',amount:a}); }
-function doClearBet(){ if(state.mode==='host') hostClearBet(state.myId); else if(state.conn&&state.conn.open) state.conn.send({type:'clearbet'}); }
-function doAction(a){ if(state.mode==='host') hgAction(state.myId,a); else if(state.conn&&state.conn.open) state.conn.send({type:'action',action:a}); }
-function doNext(){ if(state.mode==='host') hostRequestNext(); else if(state.conn&&state.conn.open) state.conn.send({type:'next'}); }
-function sendChat(){ const i=$('chatInput'); const t=i.value.trim(); if(!t) return; i.value=''; if(state.mode==='host') hostChat(state.myId,t); else if(state.conn&&state.conn.open) state.conn.send({type:'chat',text:t}); }
+function startLocal(name, botCount){
+  state.mode='host'; state.name=name; state.hostGame=createHostGame();
+  state.botCount=botCount||0; state.isHost=true; state.isLocal=true;
+  state.myId='local-host'; state.code='LOCAL';
+  for(let i=0;i<state.botCount;i++) hostAddPlayer('bot-'+i, '🤖 Бот '+(i+1), false, true);
+  hostAddPlayer(state.myId, name, true, false);
+  showGame(); hgStartBetting();
+  toast('💻 Локальная игра');
+}
+
+function doBet(a){ if(state.isHost) hostBet(state.myId,a); else if(state.sendAction&&state.hostId) state.sendAction({type:'bet',amount:a}, state.hostId); }
+function doClearBet(){ if(state.isHost) hostClearBet(state.myId); else if(state.sendAction&&state.hostId) state.sendAction({type:'clearbet'}, state.hostId); }
+function doAction(a){ if(state.isHost) hgAction(state.myId,a); else if(state.sendAction&&state.hostId) state.sendAction({type:'action',action:a}, state.hostId); }
+function doNext(){ if(state.isHost) hostRequestNext(); else if(state.sendAction&&state.hostId) state.sendAction({type:'next'}, state.hostId); }
+function sendChat(){ const i=$('chatInput'); const t=i.value.trim(); if(!t) return; i.value=''; if(state.isHost) hostChat(state.myId,t); else if(state.sendChat&&state.hostId) state.sendChat({text:t}, state.hostId); }
 
 function mkBtn(label, doWhat, val){
   const b=document.createElement('button'); b.className='btn small'; b.textContent=label; b.dataset.do=doWhat;
@@ -559,7 +520,7 @@ function renderControls(g){
   if(g.phase==='betting'){
     if(!me){ el.innerHTML='<span class="note">Ты зритель.</span>'; return; }
     if(me.status==='betting'){
-      const n=document.createElement('span'); n.className='note'; n.textContent='Твоя ставка (мин. '+MIN_BET+'):'; el.appendChild(n);
+      const n=document.createElement('span'); n.className='note'; n.textContent='Ставка (мин. '+MIN_BET+'):'; el.appendChild(n);
       [10,25,50,100,250,500].forEach(v=>{ const b=mkBtn(String(v),'bet',v); if(v>me.chips) b.disabled=true; el.appendChild(b); });
       if(me.chips>=MIN_BET) el.appendChild(mkBtn('Ва-банк ('+me.chips+')','bet',me.chips));
       return;
@@ -594,7 +555,7 @@ function render(g){
   $('roomCode').textContent=state.code||'----';
   $('roundInfo').textContent=g.round?'Раунд '+g.round:'';
   const dh=$('dealerHand'); dh.innerHTML='';
-  if(!g.dealer.hand.length) dh.innerHTML='<span class="hand-empty">Ждём раздачи…</span>';
+  if(!g.dealer.hand.length) dh.innerHTML='<span class="hand-empty">Ждём…</span>';
   else g.dealer.hand.forEach(c=>dh.appendChild(cardEl(c)));
   $('dealerValue').textContent=g.dealer.hand.length?g.dealer.value:'';
   const w=$('players'); w.innerHTML='';
@@ -644,22 +605,22 @@ function init(){
     const n=readName();
     try{localStorage.setItem('mzbj-name',n);}catch(e){}
     $('localBtn').disabled=true; $('createBtn').disabled=true;
-    startHost(n, readBots(), true);
+    startLocal(n, readBots());
   });
-  $('createBtn').addEventListener('click', ()=>{
+  $('createBtn').addEventListener('click', async()=>{
     const n=readName();
     try{localStorage.setItem('mzbj-name',n);}catch(e){}
     $('createBtn').disabled=true; $('localBtn').disabled=true;
     lobbyStatus('Создаю стол…');
-    startHost(n, readBots(), false);
+    await startHostOnline(n, readBots());
   });
-  $('joinBtn').addEventListener('click', ()=>{
+  $('joinBtn').addEventListener('click', async()=>{
     const n=readName();
     const c=($('codeInput').value||'').trim().toUpperCase();
     if(!/^[A-Z0-9]{4}$/.test(c)){ lobbyStatus('Код — 4 символа.'); return; }
     try{localStorage.setItem('mzbj-name',n);}catch(e){}
     $('joinBtn').disabled=true;
-    startClient(c, n);
+    await startClientOnline(c, n);
   });
   $('codeInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('joinBtn').click(); });
   $('copyBtn').addEventListener('click', async()=>{
@@ -679,7 +640,6 @@ function init(){
   });
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
-})();
 </script>
 </body>
 </html>
